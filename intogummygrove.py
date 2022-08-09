@@ -35,6 +35,7 @@ class Piece:
         self.row = row
         self.col = col
         self.mobility = mobility
+        self.acted = False
 
     def attack(self, other):
         if self.team != other.team:
@@ -67,7 +68,7 @@ def appStarted(app):
 
     #Gamplay 
     app.turns = 0
-    app.currentPlayer = 1
+    app.currentPlayer = (app.turns % 2) + 1
     app.pieceSelection = None
 
     #Players
@@ -112,7 +113,7 @@ def getRowCol(app, x, y):
     return row, col
 
 #Buttons 
-def drawBuyButton(app, canvas):
+def drawEndButton(app, canvas):
     canvas.create_oval(app.buybtnx - app.buybtnr, app.buybtny - app.buybtnr, 
                         app.buybtnx + app.buybtnr, app.buybtny + app.buybtnr, 
                         fill = "Green")
@@ -142,16 +143,24 @@ def getTile(app, event):
 
 def mousePressed(app, event):
     row, col = getRowCol(app, event.x, event.y)
-    print(row)
-    print(col)
-    if app.pieceSelection == None:
+    if distance(event.x, event.y, app.buybtnx, app.buybtny) < app.buybtnr:
+        app.turns += 1
+        app.currentPlayer = (app.turns % 2) + 1
+        for piece in app.player1.pieces:
+            piece.acted = False
+        for piece in app.player2.pieces:
+            piece.acted = False
+    elif app.pieceSelection == None:
         if app.currentPlayer == 1:
             for piece in app.player1.pieces:
                 if row == piece.row and col == piece.col:
                     app.pieceSelection = piece
     else:
-        movePiece(app, row, col, app.pieceSelection)
-        app.pieceSelection = None
+        print(app.pieceSelection.acted)
+        if not app.pieceSelection.acted:
+            movePiece(app, row, col, app.pieceSelection)
+            app.pieceSelection.acted = True
+            app.pieceSelection = None
 
 #Action! 
 def movePiece(app, row, col, piece):
@@ -202,7 +211,11 @@ def drawGameOver(app, canvas):
                             font = "Times 15 bold", 
                             fill = "light goldenrod yellow")
 
-def drawScore(app, canvas):
+def drawGameInfo(app, canvas):
+    canvas.create_rectangle(app.width/80,app.height/40, app.width/4, app.height/4, fill = "Yellow")
+    canvas.create_text(app.width/10, app.height/10, text = f"Player = {app.currentPlayer}")
+    canvas.create_text(app.width/10, app.height/8, text = f"Turns: {app.turns}")
+    
     pass
 
 def drawPiece(app, canvas, row, col):
@@ -217,6 +230,8 @@ def drawPieces(app, canvas):
 def redrawAll(app, canvas):
     drawBoard(app, canvas)
     drawPieces(app, canvas)
+    drawGameInfo(app, canvas)
+    drawEndButton(app, canvas)
     pass
 
 #TIMERFIRED
