@@ -15,9 +15,9 @@ from cmu_112_graphics import *
 #################################################
 
 class Player:
-    def _init_(self, name):
+    def __init__(self, name):
         self.name = name
-        self.gold = 0 
+        self.gold = 500 
         self.base = 100
         self.pieces = []
     
@@ -26,13 +26,13 @@ class Player:
         self.gold -= Piece.gold
 
 class Piece:
-    def _init_(self, health, attack, range, gold, xcord, ycord, mobility, team):
+    def __init__(self, health, attack, range, gold, row, col, mobility, team):
         self.health = health
         self.attack = attack
         self.range = range
         self.gold = gold
-        self.x = xcord
-        self.y = ycord
+        self.row = row
+        self.col = col
         self.mobility = mobility
         self.team = team
 
@@ -40,9 +40,9 @@ class Piece:
         if self.team != other.team:
             other.health -= self.attack
     
-    def move(self, newx, newy):
-        self.xcord = newx
-        self.ycord = newy        
+    def move(self, newrow, newcol):
+        self.row = newrow
+        self.col = newcol        
 #################################################
 #Graphics 
 #################################################
@@ -66,6 +66,17 @@ def appStarted(app):
 
     #Gamplay 
     app.turns = 0
+    app.currentPlayer = 1
+    app.pieceSelection = None
+
+    #Players
+    app.player1 = Player("Kevin")
+    testTank = Piece(500, 500, 500, 500, 0, 0, 100, 1)
+    app.player1.buyPiece(testTank)
+    app.player2 = Player("Ben")
+
+    #testTank
+    app.tank = app.loadImage('testTank.png')
 
     pass
 
@@ -75,9 +86,48 @@ def getIsometric(x, y, app):
     newy = x * 0.5 + y * 0.5
     return newx, newy
 
+def getCellMidPoint(app, row, col):
+    topx = col * app.cellSize
+    topy = row * app.cellSize
+    tx,ty = getIsometric(topx, topy, app)
+
+    leftx = (col) * app.cellSize
+    lefty = (row + 1) * app.cellSize
+    lx,ly = getIsometric(leftx, lefty, app)
+    tx, ly = tx + app.width/2, ly + app.tandbMargin
+    return tx, ly
+    pass
+
+def getRowCol(app, x, y):
+    x -= app.width/2 
+    y -= app.tandbMargin
+
+    col = (y + 0.5 * x) // app.cellSize
+    row = (y - 0.5 * x) // app.cellSize
+
+    return row, col
+
 #USER INPUT FUNCTIONS
 def keyPressed(app, event):
     pass
+
+def mousePressed(app, event):
+    row, col = getRowCol(app, event.x, event.y)
+    if app.pieceSelection == None:
+        if app.currentPlayer == 1:
+            for piece in app.player1.pieces:
+                if row == piece.row and col == piece.col:
+                    app.pieceSelection = piece
+                    print("yay")
+    else:
+        movePiece(app, row, col, app.pieceSelection)
+        app.pieceSelection = None
+
+#Action! 
+def movePiece(app, row, col, piece):
+    if row < app.rows and col < app.cols:
+        if row > 0 and col > 0:
+            piece.move(row, col)
 
 #DRAW BOARD FUNCTIONS
 def drawBoard(app, canvas):
@@ -125,24 +175,32 @@ def drawGameOver(app, canvas):
 def drawScore(app, canvas):
     pass
 
+def drawPiece(app, canvas, row, col):
+    x, y = getCellMidPoint(app, row, col)
+    canvas.create_image(x, (y - 10), image=ImageTk.PhotoImage(app.tank))
+
+def drawPieces(app, canvas):
+    for pieces in app.player1.pieces:
+        drawPiece(app, canvas, pieces.row, pieces.col)
+
 #REDRAWALL
 def redrawAll(app, canvas):
     drawBoard(app, canvas)
+    drawPieces(app, canvas)
     pass
 
 #TIMERFIRED
 def timerFired(app):
     pass
 
-def gameDimensions():
-    return (rows, cols, margin, cellSize)
+# def gameDimensions():
+#     return (rows, cols, margin, cellSize)
 #################################################
 # main
 #################################################
 
 def main():
     playIntoGummyGrove()
-
 if __name__ == '__main__':
     main()
 
