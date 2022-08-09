@@ -17,17 +17,17 @@ from cmu_112_graphics import *
 class Player:
     def __init__(self, name):
         self.name = name
-        self.gold = 500 
+        self.gold = 100000 
         self.base = 100
         self.pieces = []
     
     def buyPiece(self, Piece):
-        if Piece.gold < self.gold:
+        if Piece.gold <= self.gold:
             self.pieces.append(Piece)
             self.gold -= Piece.gold
 
 class Piece:
-    def __init__(self, health, attack, range, gold, row, col, mobility, team):
+    def __init__(self, health, attack, range, gold, row, col, mobility):
         self.health = health
         self.attack = attack
         self.range = range
@@ -35,7 +35,6 @@ class Piece:
         self.row = row
         self.col = col
         self.mobility = mobility
-        self.team = team
 
     def attack(self, other):
         if self.team != other.team:
@@ -68,19 +67,22 @@ def appStarted(app):
 
     #Gamplay 
     app.turns = 0
-    app.currentPlayer = (app.turns % 2) + 1
+    app.currentPlayer = 1
     app.pieceSelection = None
 
     #Players
     app.player1 = Player("Kevin")
-    testTank = Piece(500, 500, 500, 500, 0, 0, 100, 1)
+    testTank = Piece(500, 500, 500, 500, 0, 0, 100)
     app.player1.buyPiece(testTank)
     app.player2 = Player("Ben")
 
     #testTank
     app.tank = app.loadImage('testTank.png')
 
-    pass
+    #UI Locations 
+    app.buybtnx = app.width / 8
+    app.buybtny = app.height * 5 / 6
+    app.buybtnr = app.height / 12
 
 #ISOMETRIC  
 def getIsometric(x, y, app):
@@ -109,12 +111,39 @@ def getRowCol(app, x, y):
 
     return row, col
 
-#USER INPUT FUNCTIONS
-def keyPressed(app, event):
+#Buttons 
+def drawBuyButton(app, canvas):
+    canvas.create_oval(app.buybtnx - app.buybtnr, app.buybtny - app.buybtnr, 
+                        app.buybtnx + app.buybtnr, app.buybtny + app.buybtnr, 
+                        fill = "Green")
     pass
+
+#BUYBUYBUY
+def buyResourceCollector(row, col, player):
+    resourceCollector = Piece(100, 0, 0, 200, row, col, 0)
+    player.buyPiece(resourceCollector)
+
+#USER INPUT FUNCTIONS
+import math
+def distance(x0, y0, x1, y1):
+    return math.sqrt((x1-x0)**2 + (y1-y0)**2)
+
+def keyPressed(app, event):
+    if event.key == 'b':
+        if app.currentPlayer == 1:
+            row, col = getTile(app, event)
+            buyResourceCollector(row, col, app.player1)
+            pass
+    pass
+
+def getTile(app, event):
+    row, col = getRowCol(app, event.x, event.y)
+    return row, col
 
 def mousePressed(app, event):
     row, col = getRowCol(app, event.x, event.y)
+    print(row)
+    print(col)
     if app.pieceSelection == None:
         if app.currentPlayer == 1:
             for piece in app.player1.pieces:
@@ -127,7 +156,7 @@ def mousePressed(app, event):
 #Action! 
 def movePiece(app, row, col, piece):
     if row < app.rows and col < app.cols:
-        if row > 0 and col > 0:
+        if row >= 0 and col >= 0:
             piece.move(row, col)
 
 #DRAW BOARD FUNCTIONS
@@ -164,8 +193,6 @@ def drawCell(app, canvas, row, col):
     #canvas.create_rectangle(topx, topy, botx, boty, width = 3)
     canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod", width =3, outline = "black")
     pass
-
-#Buttons 
 
 def drawGameOver(app, canvas):
     if app.isGameOver:
