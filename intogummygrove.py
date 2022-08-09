@@ -13,6 +13,7 @@ from cmu_112_graphics import *
 #################################################
 #Classes 
 #################################################
+
 class Player:
     def _init_(self, name):
         self.name = name
@@ -62,6 +63,10 @@ def appStarted(app):
         for col in range(app.cols):
             temp.append(0)
         app.grid.append(temp)
+
+    #Gamplay 
+    app.turns = 0
+
     pass
 
 #ISOMETRIC  
@@ -129,8 +134,8 @@ def redrawAll(app, canvas):
 def timerFired(app):
     pass
 
-# def gameDimensions():
-#     return (rows, cols, margin, cellSize)
+def gameDimensions():
+    return (rows, cols, margin, cellSize)
 #################################################
 # main
 #################################################
@@ -140,3 +145,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
