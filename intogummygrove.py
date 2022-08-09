@@ -22,8 +22,9 @@ class Player:
         self.pieces = []
     
     def buyPiece(self, Piece):
-        self.pieces.append(Piece)
-        self.gold -= Piece.gold
+        if Piece.gold < self.gold:
+            self.pieces.append(Piece)
+            self.gold -= Piece.gold
 
 class Piece:
     def __init__(self, health, attack, range, gold, row, col, mobility, team):
@@ -43,6 +44,7 @@ class Piece:
     def move(self, newrow, newcol):
         self.row = newrow
         self.col = newcol        
+
 #################################################
 #Graphics 
 #################################################
@@ -66,7 +68,7 @@ def appStarted(app):
 
     #Gamplay 
     app.turns = 0
-    app.currentPlayer = 1
+    app.currentPlayer = (app.turns % 2) + 1
     app.pieceSelection = None
 
     #Players
@@ -118,7 +120,6 @@ def mousePressed(app, event):
             for piece in app.player1.pieces:
                 if row == piece.row and col == piece.col:
                     app.pieceSelection = piece
-                    print("yay")
     else:
         movePiece(app, row, col, app.pieceSelection)
         app.pieceSelection = None
@@ -163,6 +164,8 @@ def drawCell(app, canvas, row, col):
     #canvas.create_rectangle(topx, topy, botx, boty, width = 3)
     canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod", width =3, outline = "black")
     pass
+
+#Buttons 
 
 def drawGameOver(app, canvas):
     if app.isGameOver:
