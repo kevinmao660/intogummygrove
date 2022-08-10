@@ -335,6 +335,8 @@ def drawBoard(app, canvas):
     for row in range(app.rows):
         for col in range(app.cols):
             drawCell(app, canvas, row, col)
+            drawPieces(app, row, col, canvas)
+            drawHeight(app, canvas, row, col, app.heiboard[row][col])
     pass
 
 def drawCell(app, canvas, row, col):   
@@ -365,10 +367,9 @@ def drawCell(app, canvas, row, col):
     else:
         canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod", width = 3, outline = "black")
     
-    if app.heiboard[row][col] != 0:
-        drawHeight(app, canvas, row, col, app.heiboard[row][col])
-
 def drawHeight(app, canvas, row, col, howhigh):
+    if howhigh <= 0:
+        return
     topx = col * app.cellSize
     topy = row * app.cellSize
     tx,ty = getIsometric(topx, topy, app)
@@ -437,11 +438,13 @@ def drawBases(app, canvas):
     canvas.create_image(x1, y1 - 10, image=ImageTk.PhotoImage(app.base1))
     canvas.create_image(x2, y2 - 10, image=ImageTk.PhotoImage(app.base2))
 
-def drawPieces(app, canvas):
+def drawPieces(app, row, col, canvas):
     for piece in app.player1.pieces:
-        drawPiece(app, canvas, piece.row, piece.col, piece.name, 1)
+        if piece.row == row and piece.col == col:
+            drawPiece(app, canvas, piece.row, piece.col, piece.name, 1)
     for piece in app.player2.pieces:
-        drawPiece(app, canvas, piece.row, piece.col, piece.name, 2)
+        if piece.row == row and piece.col == col:
+            drawPiece(app, canvas, piece.row, piece.col, piece.name, 2)
 
 def drawSelection(app, canvas):
      if app.pieceSelection != None:
@@ -476,7 +479,6 @@ def drawGameOver(app, canvas):
 #REDRAWALL
 def redrawAll(app, canvas):
     drawBoard(app, canvas)
-    drawPieces(app, canvas)
     drawGameInfo(app, canvas)
     drawEndButton(app, canvas)
     drawSelection(app, canvas)
@@ -499,4 +501,3 @@ def main():
     playIntoGummyGrove()
 if __name__ == '__main__':
     main()
-
