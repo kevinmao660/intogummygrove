@@ -116,16 +116,16 @@ def appStarted(app):
     #heightBoard
     app.heiboard = [[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 1, 0, 1, 0, 0, 0, 0, 1, 1 ],
                     [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
+                    [ 0, 0, 0, 0, 1, 0, 0, 0, 0 ],
                     [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
-                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                    [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
-                    [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
-                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 1, 0, 0, 1, 0, 0, 0, 0, 1 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 1, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
                     ]
     app.heiloc = [(0,2), (0,3), (0,5), (0,6), (8,2), (8,3), (8,5), (8,6)]
-    app.height = app.cellSize / 2
+    app.hght = app.cellSize / 2
 
 
 #ISOMETRIC  
@@ -255,10 +255,11 @@ def mousePressed(app, event):
             if not app.pieceSelection.acted:
                 if isLegal(app, row, col):
                     if not app.pieceSelection.mobility < gridDis(app.pieceSelection.row, app.pieceSelection.col, row, col):
-                        movePiece(app, row, col, app.pieceSelection)
-                        app.pieceSelection.acted = True
-                        app.pieceSelection = None
-                        app.moving, app.attacking = False, False
+                        if not app.heiboard[int(row)][int(col)] == 1:
+                            movePiece(app, row, col, app.pieceSelection)
+                            app.pieceSelection.acted = True
+                            app.pieceSelection = None
+                            app.moving, app.attacking = False, False
             else:
                 app.moving, app.attacking = False, False
     #go to moving
@@ -363,6 +364,9 @@ def drawCell(app, canvas, row, col):
         canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "turquoise", width = 3, outline = "black")
     else:
         canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod", width = 3, outline = "black")
+    
+    if app.heiboard[row][col] == 1:
+        drawHeight(app, canvas, row, col)
 
 def drawHeight(app, canvas, row, col):
     topx = col * app.cellSize
@@ -387,11 +391,10 @@ def drawHeight(app, canvas, row, col):
     ty, by, ly, ry = ty + app.tandbMargin, by + app.tandbMargin, ly + app.tandbMargin, ry + app.tandbMargin
     tx, bx, lx, rx = tx + app.width/2, bx + app.width/2, lx + app.width/2, rx + app.width/2
 
-    hty, hby, hly, hry = ty - app.height, by - app.height, ly - app.height, ry - app.height
+    hty, hby, hly, hry = ty - app.hght, by - app.hght, ly - app.hght, ry - app.hght
     canvas.create_polygon(lx, hly, bx, hby, bx, by, lx, ly, fill = "light goldenrod", width = 3, outline = "black")
     canvas.create_polygon(bx, hby, bx, by, rx, ry, rx, hry, fill = "light goldenrod", width = 3, outline = "black")
     canvas.create_polygon(tx, hty, rx, hry, bx, hby, lx, hly, fill = "light goldenrod", width = 3, outline = "black")
-
     pass
 
 def drawGameOver(app, canvas):
