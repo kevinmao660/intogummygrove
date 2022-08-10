@@ -75,19 +75,17 @@ def appStarted(app):
 
     #Players
     app.player1 = Player("Kevin")
-    testTank = Piece("tank", 500, 500, 500, 500, 7, 2, 100, 1)
-    app.player1.buyPiece(testTank)
-
     app.player2 = Player("Ben")
-    testTank = Piece("etank", 0, 0, 0, 0, 0, 2, 100, 2)
-    app.player2.buyPiece(testTank)
 
-    #testTank
+    #Images
     app.tank = app.loadImage('tank.png')
     app.collect = app.loadImage('collect.png')
 
     app.etank = app.loadImage('etank.png')
     app.ecollect = app.loadImage('ecollect.png')
+
+    app.base1 = app.loadImage('base1.png')
+    app.base2 = app.loadImage('base2.png')
 
     #UI Locations 
     app.nextturnx = app.width / 8
@@ -231,10 +229,11 @@ def mousePressed(app, event):
         if app.pieceSelection.team == app.currentPlayer:
             if not app.pieceSelection.acted:
                 if isLegal(app, row, col):
-                    movePiece(app, row, col, app.pieceSelection)
-                    app.pieceSelection.acted = True
-                    app.pieceSelection = None
-                    app.moving, app.attacking = False, False
+                    if not app.pieceSelection.mobility < gridDis(app.pieceSelection.row, app.pieceSelection.col, row, col):
+                        movePiece(app, row, col, app.pieceSelection)
+                        app.pieceSelection.acted = True
+                        app.pieceSelection = None
+                        app.moving, app.attacking = False, False
             else:
                 app.moving, app.attacking = False, False
     #go to moving
@@ -245,10 +244,11 @@ def mousePressed(app, event):
     elif app.attacking:
         if app.pieceSelection.team == app.currentPlayer:
             if not app.pieceSelection.acted:
-                 attackPiece(app, row, col, app.pieceSelection)
-                 app.pieceSelection.acted = True
-                 app.pieceSelection = None
-                 app.moving, app.attacking = False, False
+                if not app.pieceSelection.range < gridDis(app.pieceSelection.row, app.pieceSelection.col, row, col):
+                    attackPiece(app, row, col, app.pieceSelection)
+                    app.pieceSelection.acted = True
+                    app.pieceSelection = None
+                    app.moving, app.attacking = False, False
             else:
                 app.moving, app.attacking = False, False
     #go to attacking
@@ -279,6 +279,9 @@ def movePiece(app, row, col, piece):
     if row < app.rows and col < app.cols:
         if row >= 0 and col >= 0:
             piece.move(row, col)
+
+def gridDis(row1, col1, row2, col2):
+    return abs(row1-row2) + abs(col1-col2)
 
 def attackPiece(app, row, col, p):
     if p.team == 1:
@@ -324,8 +327,10 @@ def drawCell(app, canvas, row, col):
 
     ty, by, ly, ry = ty + app.tandbMargin, by + app.tandbMargin, ly + app.tandbMargin, ry + app.tandbMargin
     tx, bx, lx, rx = tx + app.width/2, bx + app.width/2, lx + app.width/2, rx + app.width/2
-    #canvas.create_rectangle(topx, topy, botx, boty, width = 3)
-    canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod", width =3, outline = "black")
+    if app.resboard[row][col] == 1:
+        canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "turquoise", width = 3, outline = "black")
+    else:
+        canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod", width = 3, outline = "black")
     pass
 
 def drawGameOver(app, canvas):
@@ -342,8 +347,11 @@ def drawGameInfo(app, canvas):
     canvas.create_text(app.width/10, app.height/8, text = f"Total Number of Turns: {app.turns}")
     if app.currentPlayer == 1:
         canvas.create_text(app.width/10, app.height/7, text = f"Player Gold: {app.player1.gold}")
+        canvas.create_text(app.width/10, app.height/6, text = f"Player Base Health: {app.player1.base}")
     if app.currentPlayer == 2:
         canvas.create_text(app.width/10, app.height/7, text = f"Player Gold: {app.player2.gold}")
+        canvas.create_text(app.width/10, app.height/6, text = f"Player Base Health: {app.player2.base}")
+    
 
 def drawPiece(app, canvas, row, col, name, player):
     x, y = getCellMidPoint(app, row, col)
@@ -372,6 +380,7 @@ def drawSelection(app, canvas):
         canvas.create_text(app.width * 5/6, app.height/7, text = f"Range: {app.pieceSelection.range}")
         canvas.create_text(app.width * 5/6, app.height/6, text = f"Damage: {app.pieceSelection.attack}")
         canvas.create_text(app.width * 5/6, app.height/5, text = f"Acted: {app.pieceSelection.acted}")
+        canvas.create_text(app.width * 5/6, app.height * 9/40, text = f"Mobility: {app.pieceSelection.mobility}")
 
 def drawAttackBtn(app, canvas):
     if app.pieceSelection != None:
