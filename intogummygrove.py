@@ -18,7 +18,7 @@ class Player:
     def __init__(self, name):
         self.name = name
         self.gold = 1000 
-        self.base = 10000
+        self.base = 1000
         self.pieces = []
     
     def buyPiece(self, Piece):
@@ -72,6 +72,7 @@ def appStarted(app):
     app.turns = 0
     app.currentPlayer = (app.turns % 2) + 1
     app.pieceSelection = None
+    app.gameOver = False
 
     #Players
     app.player1 = Player("Kevin")
@@ -85,7 +86,11 @@ def appStarted(app):
     app.ecollect = app.loadImage('ecollect.png')
 
     app.base1 = app.loadImage('base1.png')
+    app.base1row = 8
+    app.base1col = 4
     app.base2 = app.loadImage('base2.png')
+    app.base2row = 0
+    app.base2col = 4
 
     #UI Locations 
     app.nextturnx = app.width / 8
@@ -107,6 +112,20 @@ def appStarted(app):
                     [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ]
                     ]
     app.reslocations = [(0,0), (8,0), (0,8), (8,8)]
+
+    #heightBoard
+    app.heiboard = [[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
+                    [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
+                    [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+                    ]
+    app.heiloc = [(0,2), (0,3), (0,5), (0,6), (8,2), (8,3), (8,5), (8,6)]
+    app.height = app.cellSize / 2
 
 
 #ISOMETRIC  
@@ -146,20 +165,22 @@ def drawEndButton(app, canvas):
 
 #BUYBUYBUY
 def buyResourceCollector(app, row, col, player):
-    if app.currentPlayer == 1:
-        resourceCollector = Piece("collect", 100, 0, 0, 200, row, col, 0, 1)
-        player.buyPiece(resourceCollector)
-    else:
-        resourceCollector = Piece("ecollect", 100, 0, 0, 200, row, col, 0, 2)
-        player.buyPiece(resourceCollector)
+    if len(player.pieces) < 8:
+        if app.currentPlayer == 1:
+            resourceCollector = Piece("collect", 100, 0, 0, 200, row, col, 0, 1)
+            player.buyPiece(resourceCollector)
+        else:
+            resourceCollector = Piece("ecollect", 100, 0, 0, 200, row, col, 0, 2)
+            player.buyPiece(resourceCollector)
 
 def buyTank(app, row, col, player):
-    if app.currentPlayer == 1:
-        tank = Piece("tank", 300, 100, 5, 200, row, col, 2, 1)
-        player.buyPiece(tank)
-    else:
-        tank = Piece("etank", 300, 100, 5, 200, row, col, 2, 2)
-        player.buyPiece(tank)
+    if len(player.pieces) < 8:
+        if app.currentPlayer == 1:
+            tank = Piece("tank", 300, 1000, 5, 200, row, col, 2, 1)
+            player.buyPiece(tank)
+        else:
+            tank = Piece("etank", 300, 100, 5, 200, row, col, 2, 2)
+            player.buyPiece(tank)
 
 #USER INPUT FUNCTIONS
 import math
@@ -167,6 +188,8 @@ def distance(x0, y0, x1, y1):
     return math.sqrt((x1-x0)**2 + (y1-y0)**2)
 
 def keyPressed(app, event):
+    if app.gameOver:
+        return
     if event.key == 'b':
         if app.currentPlayer == 1:
             row, col = getTile(app, event)
@@ -212,9 +235,11 @@ def addMoney(app):
     pass
 
 def mousePressed(app, event):
+    if app.gameOver:
+        return
     row, col = getRowCol(app, event.x, event.y)
     #Ending the Turn
-    if distance(event.x, event.y, app.nextturnx, app.nextturny) < app.buybtnr:
+    if distance(event.x, event.y, app.nextturnx, app.nextturny) < app.buybtnr:  
         app.moving, app.attacking = False, False
         app.pieceSelection = None
         addMoney(app)
@@ -237,8 +262,7 @@ def mousePressed(app, event):
             else:
                 app.moving, app.attacking = False, False
     #go to moving
-    elif event.x > (app.width * 59/80) and event.x < (app.width * 68/80):
-        if event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
+    elif event.x > (app.width * 59/80) and event.x < (app.width * 68/80) and event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
             app.moving = True
     #attack the piece
     elif app.attacking:
@@ -246,14 +270,17 @@ def mousePressed(app, event):
             if not app.pieceSelection.acted:
                 if not app.pieceSelection.range < gridDis(app.pieceSelection.row, app.pieceSelection.col, row, col):
                     attackPiece(app, row, col, app.pieceSelection)
+                    if app.player1.base <= 0:
+                        app.gameOver = True
+                    if app.player2.base <= 0:
+                        app.gameOver = True
                     app.pieceSelection.acted = True
                     app.pieceSelection = None
                     app.moving, app.attacking = False, False
             else:
                 app.moving, app.attacking = False, False
     #go to attacking
-    elif event.x > (app.width * 70/80) and event.x < (app.width * 79/80):
-        if event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
+    elif event.x > (app.width * 70/80) and event.x < (app.width * 79/80) and event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
             app.attacking = True
 
     #Selecting a Piece
@@ -285,12 +312,17 @@ def gridDis(row1, col1, row2, col2):
 
 def attackPiece(app, row, col, p):
     if p.team == 1:
-        for enpiece in app.player2.pieces:
-            if enpiece.row == row and enpiece.col == col:
-                p.atc(enpiece)
-                if enpiece.health <= 0:
-                    app.player2.pieces.remove(enpiece)  
+        if row == app.base2row and col == app.base2col:
+            app.player2.base -= p.attack
+        else:
+            for enpiece in app.player2.pieces:
+                if enpiece.row == row and enpiece.col == col:
+                    p.atc(enpiece)
+                    if enpiece.health <= 0:
+                        app.player2.pieces.remove(enpiece)  
     else:
+        if row == app.base1row and col == app.base1col:
+            app.player1.base -= p.attack
         for enpiece in app.player1.pieces:
             if enpiece.row == row and p.col == col:
                 p.atc(enpiece)
@@ -331,6 +363,35 @@ def drawCell(app, canvas, row, col):
         canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "turquoise", width = 3, outline = "black")
     else:
         canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod", width = 3, outline = "black")
+
+def drawHeight(app, canvas, row, col):
+    topx = col * app.cellSize
+    topy = row * app.cellSize
+    tx,ty = getIsometric(topx, topy, app)
+
+    #bottom
+    botx = (col + 1) * app.cellSize
+    boty = (row + 1) * app.cellSize
+    bx,by = getIsometric(botx, boty, app)
+
+    #left
+    leftx = (col) * app.cellSize
+    lefty = (row + 1) * app.cellSize
+    lx,ly = getIsometric(leftx, lefty, app)
+
+    #right
+    rightx = (col + 1) * app.cellSize
+    righty = (row) * app.cellSize
+    rx,ry = getIsometric(rightx, righty, app)
+
+    ty, by, ly, ry = ty + app.tandbMargin, by + app.tandbMargin, ly + app.tandbMargin, ry + app.tandbMargin
+    tx, bx, lx, rx = tx + app.width/2, bx + app.width/2, lx + app.width/2, rx + app.width/2
+
+    hty, hby, hly, hry = ty - app.height, by - app.height, ly - app.height, ry - app.height
+    canvas.create_polygon(lx, hly, bx, hby, bx, by, lx, ly, fill = "light goldenrod", width = 3, outline = "black")
+    canvas.create_polygon(bx, hby, bx, by, rx, ry, rx, hry, fill = "light goldenrod", width = 3, outline = "black")
+    canvas.create_polygon(tx, hty, rx, hry, bx, hby, lx, hly, fill = "light goldenrod", width = 3, outline = "black")
+
     pass
 
 def drawGameOver(app, canvas):
@@ -351,7 +412,6 @@ def drawGameInfo(app, canvas):
     if app.currentPlayer == 2:
         canvas.create_text(app.width/10, app.height/7, text = f"Player Gold: {app.player2.gold}")
         canvas.create_text(app.width/10, app.height/6, text = f"Player Base Health: {app.player2.base}")
-    
 
 def drawPiece(app, canvas, row, col, name, player):
     x, y = getCellMidPoint(app, row, col)
@@ -365,6 +425,12 @@ def drawPiece(app, canvas, row, col, name, player):
             canvas.create_image(x, (y - 10), image=ImageTk.PhotoImage(app.etank))
         elif name == "ecollect":
             canvas.create_image(x, (y-10), image=ImageTk.PhotoImage(app.ecollect))
+
+def drawBases(app, canvas):
+    x1, y1 = getCellMidPoint(app, app.base1row, app.base1col)
+    x2, y2 = getCellMidPoint(app, app.base2row, app.base2col)
+    canvas.create_image(x1, y1 - 10, image=ImageTk.PhotoImage(app.base1))
+    canvas.create_image(x2, y2 - 10, image=ImageTk.PhotoImage(app.base2))
 
 def drawPieces(app, canvas):
     for piece in app.player1.pieces:
@@ -390,6 +456,18 @@ def drawAttackBtn(app, canvas):
             canvas.create_text(app.width * 75/80, app.height * 67/80, text = "attack")
             canvas.create_text(app.width * 64/80, app.height * 67/80, text = "move")
 
+def drawGameOver(app, canvas):
+    if app.gameOver:
+        canvas.create_rectangle(0, app.height/2 - 20, app.width,
+                                app.height/2 + 20, fill = "black")
+        if app.player1.base <= 0:
+            canvas.create_text(app.width/2, app.height/2, text = "GAME OVER PLAYER 2 WINS",
+                                font = "Times 15 bold", 
+                                fill = "light goldenrod yellow")
+        else:
+            canvas.create_text(app.width/2, app.height/2, text = "GAME OVER PLAYER 1 WINS",
+                                font = "Times 15 bold", 
+                                fill = "light goldenrod yellow")
 #REDRAWALL
 def redrawAll(app, canvas):
     drawBoard(app, canvas)
@@ -398,6 +476,8 @@ def redrawAll(app, canvas):
     drawEndButton(app, canvas)
     drawSelection(app, canvas)
     drawAttackBtn(app, canvas)
+    drawBases(app, canvas)
+    drawGameOver(app, canvas)
     pass
 
 #TIMERFIRED
