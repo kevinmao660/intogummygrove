@@ -116,10 +116,10 @@ def appStarted(app):
     #heightBoard
     app.heiboard = [[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                    [ 1, 0, 1, 0, 0, 0, 0, 1, 1 ],
-                    [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
-                    [ 0, 0, 0, 0, 1, 0, 0, 0, 0 ],
-                    [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
+                    [ 1, 0, 1, 0, 0, 0, 0, 1, 2 ],
+                    [ 1, 0, 2, 0, 0, 0, 0, 0, 1 ],
+                    [ 0, 0, 1, 0, 2, 1, 0, 0, 0 ],
+                    [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ],
                     [ 1, 0, 0, 1, 0, 0, 0, 0, 1 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 1, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
@@ -365,10 +365,10 @@ def drawCell(app, canvas, row, col):
     else:
         canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod", width = 3, outline = "black")
     
-    if app.heiboard[row][col] == 1:
-        drawHeight(app, canvas, row, col)
+    if app.heiboard[row][col] != 0:
+        drawHeight(app, canvas, row, col, app.heiboard[row][col])
 
-def drawHeight(app, canvas, row, col):
+def drawHeight(app, canvas, row, col, howhigh):
     topx = col * app.cellSize
     topy = row * app.cellSize
     tx,ty = getIsometric(topx, topy, app)
@@ -391,7 +391,9 @@ def drawHeight(app, canvas, row, col):
     ty, by, ly, ry = ty + app.tandbMargin, by + app.tandbMargin, ly + app.tandbMargin, ry + app.tandbMargin
     tx, bx, lx, rx = tx + app.width/2, bx + app.width/2, lx + app.width/2, rx + app.width/2
 
-    hty, hby, hly, hry = ty - app.hght, by - app.hght, ly - app.hght, ry - app.hght
+    high = howhigh * app.hght
+
+    hty, hby, hly, hry = ty - high, by - high, ly - high, ry - high
     canvas.create_polygon(lx, hly, bx, hby, bx, by, lx, ly, fill = "light goldenrod", width = 3, outline = "black")
     canvas.create_polygon(bx, hby, bx, by, rx, ry, rx, hry, fill = "light goldenrod", width = 3, outline = "black")
     canvas.create_polygon(tx, hty, rx, hry, bx, hby, lx, hly, fill = "light goldenrod", width = 3, outline = "black")
