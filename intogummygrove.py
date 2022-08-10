@@ -17,8 +17,8 @@ from cmu_112_graphics import *
 class Player:
     def __init__(self, name):
         self.name = name
-        self.gold = 100000 
-        self.base = 100
+        self.gold = 1000 
+        self.base = 10000
         self.pieces = []
     
     def buyPiece(self, Piece):
@@ -39,7 +39,7 @@ class Piece:
         self.acted = False
         self.team = team
 
-    def attack(self, other):
+    def atc(self, other):
         if self.team != other.team:
             other.health -= self.attack
     
@@ -56,8 +56,8 @@ def playIntoGummyGrove():
 
 def appStarted(app):
     #Grid Layout
-    app.rows = 8 
-    app.cols = 8
+    app.rows = 9 
+    app.cols = 9
     app.sideMargin = app.width/4
     app.tandbMargin = app.height / 12
     app.grid = []
@@ -79,7 +79,7 @@ def appStarted(app):
     app.player1.buyPiece(testTank)
 
     app.player2 = Player("Ben")
-    testTank = Piece("tank", 0, 0, 0, 0, 0, 2, 100, 2)
+    testTank = Piece("etank", 0, 0, 0, 0, 0, 2, 100, 2)
     app.player2.buyPiece(testTank)
 
     #testTank
@@ -96,6 +96,20 @@ def appStarted(app):
 
     app.attacking = False
     app.moving = False
+
+    #Resource Board: 
+    app.resboard = [[ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ]
+                    ]
+    app.reslocations = [(0,0), (8,0), (0,8), (8,8)]
+
 
 #ISOMETRIC  
 def getIsometric(x, y, app):
@@ -143,11 +157,11 @@ def buyResourceCollector(app, row, col, player):
 
 def buyTank(app, row, col, player):
     if app.currentPlayer == 1:
-        resourceCollector = Piece("tank", 100, 0, 0, 200, row, col, 0, 1)
-        player.buyPiece(resourceCollector)
+        tank = Piece("tank", 300, 100, 5, 200, row, col, 2, 1)
+        player.buyPiece(tank)
     else:
-        resourceCollector = Piece("etank", 100, 0, 0, 200, row, col, 0, 2)
-        player.buyPiece(resourceCollector)
+        tank = Piece("etank", 300, 100, 5, 200, row, col, 2, 2)
+        player.buyPiece(tank)
 
 #USER INPUT FUNCTIONS
 import math
@@ -158,17 +172,21 @@ def keyPressed(app, event):
     if event.key == 'b':
         if app.currentPlayer == 1:
             row, col = getTile(app, event)
-            buyResourceCollector(app, row, col, app.player1)
+            if isLegal(app, row, col):
+                buyResourceCollector(app, row, col, app.player1)
         if app.currentPlayer == 2:
             row, col = getTile(app, event)
-            buyResourceCollector(app, row, col, app.player2)
+            if isLegal(app, row, col):
+                buyResourceCollector(app, row, col, app.player2)
     if event.key == 't':
         if app.currentPlayer == 1:
             row, col = getTile(app, event)
-            buyTank(app, row, col, app.player1)
+            if isLegal(app, row, col):
+                buyTank(app, row, col, app.player1)
         if app.currentPlayer == 2:
             row, col = getTile(app, event)
-            buyTank(app, row, col, app.player2)
+            if isLegal(app, row, col):
+                buyTank(app, row, col, app.player2)
     
 
 def getTile(app, event):
@@ -184,12 +202,24 @@ def selectPiece(app, event):
         if row == piece.row and col == piece.col:
             app.pieceSelection = piece
 
+def addMoney(app):
+    for piece in app.player1.pieces:
+        if piece.name == "collect":
+            if (piece.row, piece.col) in app.reslocations:
+                app.player1.gold += 100
+    for piece in app.player2.pieces:
+        if piece.name == "ecollect":
+            if (piece.row, piece.col) in app.reslocations:
+                app.player2.gold += 100
+    pass
+
 def mousePressed(app, event):
     row, col = getRowCol(app, event.x, event.y)
     #Ending the Turn
     if distance(event.x, event.y, app.nextturnx, app.nextturny) < app.buybtnr:
         app.moving, app.attacking = False, False
         app.pieceSelection = None
+        addMoney(app)
         app.turns += 1
         app.currentPlayer = (app.turns % 2) + 1
         for piece in app.player1.pieces:
@@ -200,27 +230,69 @@ def mousePressed(app, event):
     elif app.moving:
         if app.pieceSelection.team == app.currentPlayer:
             if not app.pieceSelection.acted:
-                 movePiece(app, row, col, app.pieceSelection)
-                 app.pieceSelection.acted = True
-                 app.pieceSelection = None
-                 app.moving, app.attacking = False, False
+                if isLegal(app, row, col):
+                    movePiece(app, row, col, app.pieceSelection)
+                    app.pieceSelection.acted = True
+                    app.pieceSelection = None
+                    app.moving, app.attacking = False, False
             else:
                 app.moving, app.attacking = False, False
     #go to moving
     elif event.x > (app.width * 59/80) and event.x < (app.width * 68/80):
         if event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
             app.moving = True
+    #attack the piece
+    elif app.attacking:
+        if app.pieceSelection.team == app.currentPlayer:
+            if not app.pieceSelection.acted:
+                 attackPiece(app, row, col, app.pieceSelection)
+                 app.pieceSelection.acted = True
+                 app.pieceSelection = None
+                 app.moving, app.attacking = False, False
+            else:
+                app.moving, app.attacking = False, False
+    #go to attacking
+    elif event.x > (app.width * 70/80) and event.x < (app.width * 79/80):
+        if event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
+            app.attacking = True
+
     #Selecting a Piece
     else:
         app.moving, app.attacking = False, False
         selectPiece(app, event)
 
 #Action! 
+def isLegal(app, row, col):
+    if row >= app.rows or col >= app.cols:
+        return False
+    if row < 0 or col < 0:
+        return False
+    for pieces in app.player1.pieces:
+        if pieces.row == row and pieces.col == col:
+            return False
+    for pieces in app.player2.pieces:
+        if pieces.row == row and pieces.col == col:
+            return False
+    return True
+
 def movePiece(app, row, col, piece):
     if row < app.rows and col < app.cols:
         if row >= 0 and col >= 0:
             piece.move(row, col)
 
+def attackPiece(app, row, col, p):
+    if p.team == 1:
+        for enpiece in app.player2.pieces:
+            if enpiece.row == row and enpiece.col == col:
+                p.atc(enpiece)
+                if enpiece.health <= 0:
+                    app.player2.pieces.remove(enpiece)  
+    else:
+        for enpiece in app.player1.pieces:
+            if enpiece.row == row and p.col == col:
+                p.atc(enpiece)
+                if enpiece.health <= 0:
+                    app.player1.pieces.remove(enpiece)            
 #DRAW BOARD FUNCTIONS
 def drawBoard(app, canvas):
     canvas.create_rectangle(0, 0, app.width, app.height, fill = "grey22")
@@ -268,6 +340,10 @@ def drawGameInfo(app, canvas):
     canvas.create_rectangle(app.width/80,app.height/40, app.width/4, app.height/4, fill = "Yellow")
     canvas.create_text(app.width/10, app.height/10, text = f"Current Player is : {app.currentPlayer}")
     canvas.create_text(app.width/10, app.height/8, text = f"Total Number of Turns: {app.turns}")
+    if app.currentPlayer == 1:
+        canvas.create_text(app.width/10, app.height/7, text = f"Player Gold: {app.player1.gold}")
+    if app.currentPlayer == 2:
+        canvas.create_text(app.width/10, app.height/7, text = f"Player Gold: {app.player2.gold}")
 
 def drawPiece(app, canvas, row, col, name, player):
     x, y = getCellMidPoint(app, row, col)
@@ -277,9 +353,9 @@ def drawPiece(app, canvas, row, col, name, player):
         elif name == "collect":
             canvas.create_image(x, (y-10), image=ImageTk.PhotoImage(app.collect))
     else:
-        if name == "tank":
+        if name == "etank":
             canvas.create_image(x, (y - 10), image=ImageTk.PhotoImage(app.etank))
-        elif name == "collect":
+        elif name == "ecollect":
             canvas.create_image(x, (y-10), image=ImageTk.PhotoImage(app.ecollect))
 
 def drawPieces(app, canvas):
