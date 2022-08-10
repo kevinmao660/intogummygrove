@@ -27,7 +27,8 @@ class Player:
             self.gold -= Piece.gold
 
 class Piece:
-    def __init__(self, health, attack, range, gold, row, col, mobility):
+    def __init__(self, name, health, attack, range, gold, row, col, mobility):
+        self.name = name
         self.health = health
         self.attack = attack
         self.range = range
@@ -73,12 +74,19 @@ def appStarted(app):
 
     #Players
     app.player1 = Player("Kevin")
-    testTank = Piece(500, 500, 500, 500, 0, 0, 100)
+    testTank = Piece("tank", 500, 500, 500, 500, 7, 2, 100)
     app.player1.buyPiece(testTank)
+
     app.player2 = Player("Ben")
+    testTank = Piece("tank", 500, 500, 500, 500, 0, 2, 100)
+    app.player2.buyPiece(testTank)
 
     #testTank
-    app.tank = app.loadImage('testTank.png')
+    app.tank = app.loadImage('tank.png')
+    app.collect = app.loadImage('collect.png')
+
+    app.etank = app.loadImage('etank.png')
+    app.ecollect = app.loadImage('ecollect.png')
 
     #UI Locations 
     app.nextturnx = app.width / 8
@@ -117,12 +125,12 @@ def drawEndButton(app, canvas):
     canvas.create_oval(app.nextturnx - app.buybtnr, app.nextturny - app.buybtnr, 
                         app.nextturnx + app.buybtnr, app.nextturny + app.buybtnr, 
                         fill = "goldenrod")
-    canvas.create_text(app.nextturnx, app.nextturny, text = "Next Turn")
+    canvas.create_text(app.nextturnx, app.nextturny, text = "End Turn")
     pass
 
 #BUYBUYBUY
 def buyResourceCollector(row, col, player):
-    resourceCollector = Piece(100, 0, 0, 200, row, col, 0)
+    resourceCollector = Piece("collect", 100, 0, 0, 200, row, col, 0)
     player.buyPiece(resourceCollector)
 
 #USER INPUT FUNCTIONS
@@ -221,18 +229,29 @@ def drawGameInfo(app, canvas):
     canvas.create_text(app.width/10, app.height/10, text = f"Player = {app.currentPlayer}")
     canvas.create_text(app.width/10, app.height/8, text = f"Turns: {app.turns}")
 
-def drawPiece(app, canvas, row, col):
+def drawPiece(app, canvas, row, col, name, player):
     x, y = getCellMidPoint(app, row, col)
-    canvas.create_image(x, (y - 10), image=ImageTk.PhotoImage(app.tank))
+    if player == 1:
+        if name == "tank":
+            canvas.create_image(x, (y - 10), image=ImageTk.PhotoImage(app.tank))
+        elif name == "collect":
+            canvas.create_image(x, (y-10), image=ImageTk.PhotoImage(app.collect))
+    else:
+        if name == "tank":
+            canvas.create_image(x, (y - 10), image=ImageTk.PhotoImage(app.etank))
+        elif name == "collect":
+            canvas.create_image(x, (y-10), image=ImageTk.PhotoImage(app.ecollect))
 
 def drawPieces(app, canvas):
-    for pieces in app.player1.pieces:
-        drawPiece(app, canvas, pieces.row, pieces.col)
+    for piece in app.player1.pieces:
+        drawPiece(app, canvas, piece.row, piece.col, piece.name, 1)
+    for piece in app.player2.pieces:
+        drawPiece(app, canvas, piece.row, piece.col, piece.name, 2)
 
 def drawSelection(app, canvas):
     while app.pieceSelection != None:
+        canvas.create_rectangle(app. width*60/80, app.height/40, app.width * 79/80, app.height / 4, fill = "light goldenrod")
         pass
-
 
 #REDRAWALL
 def redrawAll(app, canvas):
@@ -240,6 +259,7 @@ def redrawAll(app, canvas):
     drawPieces(app, canvas)
     drawGameInfo(app, canvas)
     drawEndButton(app, canvas)
+    drawSelection(app, canvas)
     pass
 
 #TIMERFIRED
