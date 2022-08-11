@@ -129,6 +129,14 @@ def appStarted(app):
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
                     ]
     app.hght = app.cellSize * 1/2
+    app.aim = (-1, -1)
+
+    #views
+    app.view = 0
+
+    app.movement = 0
+    app.aimSelectionRow = -1
+    app.aimSelectionCol = -1
 
 #ISOMETRIC  
 def getIsometric(x, y, app):
@@ -154,11 +162,7 @@ def getRowCol(app, x, y):
     return row, col
 
 #Buttons 
-def drawEndButton(app, canvas):
-    canvas.create_oval(app.nextturnx - app.buybtnr, app.nextturny - app.buybtnr, 
-                        app.nextturnx + app.buybtnr, app.nextturny + app.buybtnr, 
-                        fill = "goldenrod")
-    canvas.create_text(app.nextturnx, app.nextturny, text = "End Turn", fill = "White")
+
 
 #BUYBUYBUY
 def buyResourceCollector(app, row, col, player):
@@ -187,25 +191,105 @@ def distance(x0, y0, x1, y1):
 def keyPressed(app, event):
     if app.gameOver:
         return
-    if event.key == 'b':
+    if event.key == 'q':
         if app.currentPlayer == 1:
             row, col = getTile(app, event)
             if isLegal(app, row, col):
-                buyResourceCollector(app, row, col, app.player1)
+                if row > 6:
+                    buyResourceCollector(app, row, col, app.player1)
         if app.currentPlayer == 2:
             row, col = getTile(app, event)
             if isLegal(app, row, col):
-                buyResourceCollector(app, row, col, app.player2)
-    if event.key == 't':
+                if row < 3:
+                    buyResourceCollector(app, row, col, app.player2)
+    if event.key == 'w':
         if app.currentPlayer == 1:
             row, col = getTile(app, event)
             if isLegal(app, row, col):
-                buyTank(app, row, col, app.player1)
+                if row > 6:
+                    buyTank(app, row, col, app.player1)
         if app.currentPlayer == 2:
             row, col = getTile(app, event)
             if isLegal(app, row, col):
-                buyTank(app, row, col, app.player2)
-    
+                if row < 3:
+                    buyTank(app, row, col, app.player2)
+    if event.key == 'e':
+        app.moving, app.attacking = False, False
+        app.pieceSelection = None
+        addMoney(app)
+        app.turns += 1
+        app.currentPlayer = (app.turns % 2) + 1
+        for piece in app.player1.pieces:
+            piece.acted = False
+        for piece in app.player2.pieces:
+            piece.acted = False
+    if event.key == 's':
+        app.moving = True
+    if event.key == 'a':
+        app.attacking = True
+    if event.key == 'Up':
+        if app.pieceSelection != None and app.pieceSelection.team == app.currentPlayer and app.moving:
+            if not app.pieceSelection.acted:
+                if isLegal(app, app.pieceSelection.row - 1, app.pieceSelection.col):
+                    if abs(app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)] - app.heiboard[int(app.pieceSelection.row) - 1][int(app.pieceSelection.col)]) <= 1:
+                        app.pieceSelection.row -= 1
+                        if app.movement == 0:
+                            app.movement += 1
+                        else:
+                            app.pieceSelection.acted = True
+                            app.movement = 0
+                        app.pieceSelection.range += app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)]
+
+            else:
+                app.moving, app.attacking = False, False
+    if event.key == 'Right':
+        if app.pieceSelection != None and app.pieceSelection.team == app.currentPlayer and app.moving:
+            if not app.pieceSelection.acted:
+                if isLegal(app, app.pieceSelection.row, app.pieceSelection.col + 1):
+                    if abs(app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)] - app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col) + 1]) <= 1:
+                        app.pieceSelection.col += 1
+                        if app.movement == 0:
+                            app.movement += 1
+                        else:
+                            app.pieceSelection.acted = True
+                            app.movement = 0
+                        app.pieceSelection.range += app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)]
+            else:
+                app.moving, app.attacking = False, False
+    if event.key == 'Down':
+        if app.pieceSelection != None and app.pieceSelection.team == app.currentPlayer and app.moving:
+            if not app.pieceSelection.acted:
+                if isLegal(app, app.pieceSelection.row + 1, app.pieceSelection.col):
+                    if abs(app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)] - app.heiboard[int(app.pieceSelection.row) + 1][int(app.pieceSelection.col)]) <= 1:
+                        app.pieceSelection.row += 1
+                        if app.movement == 0:
+                            app.movement += 1
+                        else:
+                            app.pieceSelection.acted = True
+                            app.movement = 0
+                        app.pieceSelection.range += app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)]
+            else:
+                app.moving, app.attacking = False, False
+    if event.key == 'Left':
+        if app.pieceSelection != None and app.pieceSelection.team == app.currentPlayer and app.moving:
+            if not app.pieceSelection.acted:
+                if isLegal(app, app.pieceSelection.row, app.pieceSelection.col - 1):
+                    if abs(app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)] - app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col) - 1]) <= 1:
+                        app.pieceSelection.col -= 1
+                        if app.movement == 0:
+                            app.movement += 1
+                        else:
+                            app.pieceSelection.acted = True
+                            app.movement = 0
+                        app.pieceSelection.range += app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)]
+            else:
+                app.moving, app.attacking = False, False
+    if event.key == '1':
+        app.view = 1
+    if event.key == '2':
+        app.view = 2
+    if event.key == '0':
+        app.view = 0
 
 def getTile(app, event):
     row, col = getRowCol(app, event.x, event.y)
@@ -219,6 +303,11 @@ def selectPiece(app, event):
     for piece in app.player2.pieces:
         if row == piece.row and col == piece.col:
             app.pieceSelection = piece
+
+def aimPiece(app, event):
+    row, col = getRowCol(app, event.x, event.y)
+    app.aimSelectionRow = row
+    app.aimSelectionCol = col
 
 def addMoney(app):
     for piece in app.player1.pieces:
@@ -234,55 +323,46 @@ def mousePressed(app, event):
     if app.gameOver:
         return
     row, col = getRowCol(app, event.x, event.y)
-    #Ending the Turn
-    if distance(event.x, event.y, app.nextturnx, app.nextturny) < app.buybtnr:  
-        app.moving, app.attacking = False, False
-        app.pieceSelection = None
-        addMoney(app)
-        app.turns += 1
-        app.currentPlayer = (app.turns % 2) + 1
-        for piece in app.player1.pieces:
-            piece.acted = False
-        for piece in app.player2.pieces:
-            piece.acted = False
-    #move the piece
-    elif app.moving:
-        if app.pieceSelection.team == app.currentPlayer:
-            if not app.pieceSelection.acted:
-                if isLegal(app, row, col):
-                    if not app.pieceSelection.mobility < gridDis(app.pieceSelection.row, app.pieceSelection.col, row, col):
-                        if not app.heiboard[int(row)][int(col)] == 1:
-                            movePiece(app, row, col, app.pieceSelection)
-                            app.pieceSelection.acted = True
-                            app.pieceSelection = None
-                            app.moving, app.attacking = False, False
-            else:
-                app.moving, app.attacking = False, False
-    #go to moving
-    elif event.x > (app.width * 59/80) and event.x < (app.width * 68/80) and event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
-            app.moving = True
+    # #Move Piece
+    # if app.moving:
+    #     if app.pieceSelection.team == app.currentPlayer:
+    #         if not app.pieceSelection.acted:
+    #             if isLegal(app, row, col):
+    #                 if not app.pieceSelection.mobility < gridDis(app.pieceSelection.row, app.pieceSelection.col, row, col):
+    #                     if not app.heiboard[int(row)][int(col)] == 1:
+    #                         movePiece(app, row, col, app.pieceSelection)
+    #                         app.pieceSelection.acted = True
+    #                         app.pieceSelection = None
+    #                         app.moving, app.attacking = False, False
+    #         else:
+    #             app.moving, app.attacking = False, False
+    # #go to moving
+    # elif event.x > (app.width * 59/80) and event.x < (app.width * 68/80) and event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
+    #         app.moving = True
     #attack the piece
-    elif app.attacking:
-        if app.pieceSelection.team == app.currentPlayer:
-            if not app.pieceSelection.acted:
-                if not app.pieceSelection.range < gridDis(app.pieceSelection.row, app.pieceSelection.col, row, col):
-                    attackPiece(app, row, col, app.pieceSelection)
-                    if app.player1.base <= 0:
-                        app.gameOver = True
-                    if app.player2.base <= 0:
-                        app.gameOver = True
-                    app.pieceSelection.acted = True
-                    app.pieceSelection = None
-                    app.moving, app.attacking = False, False
-            else:
-                app.moving, app.attacking = False, False
     #go to attacking
-    elif event.x > (app.width * 70/80) and event.x < (app.width * 79/80) and event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
-            app.attacking = True
+    if event.x > (app.width * 70/80) and event.x < (app.width * 79/80) and event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
+        if app.attacking:
+            if app.pieceSelection.team == app.currentPlayer:
+                if not app.pieceSelection.acted:
+                    if not app.pieceSelection.range < gridDis(app.pieceSelection.row, app.pieceSelection.col, app.aimSelectionRow, app.aimSelectionCol):
+                        attackPiece(app, app.aimSelectionRow, app.aimSelectionCol, app.pieceSelection)
+                        if app.player1.base <= 0:
+                            app.gameOver = True
+                        if app.player2.base <= 0:
+                            app.gameOver = True
+                        app.pieceSelection.acted = True
+                        app.pieceSelection = None
+                        app.moving, app.attacking = False, False
+                else:
+                    app.moving, app.attacking = False, False
     #Selecting a Piece
     else:
-        app.moving, app.attacking = False, False
-        selectPiece(app, event)
+        if app.attacking:
+            aimPiece(app, event)
+        else:
+            app.moving, app.attacking = False, False
+            selectPiece(app, event)
 
 #Action! 
 def isLegal(app, row, col):
@@ -330,9 +410,18 @@ def drawBoard(app, canvas):
     canvas.create_rectangle(0, 0, app.width, app.height, fill = "grey15")
     for row in range(app.rows):
         for col in range(app.cols):
-            drawCell(app, canvas, row, col)
-            drawPieces(app, row, col, canvas)
-            drawHeight(app, canvas, row, col, app.heiboard[row][col])
+            if app.view == 0:
+                drawCell(app, canvas, row, col)
+                if app.heiboard[row][col] == 0:
+                    drawPieces(app, row, col, canvas, 0)
+                drawHeight(app, canvas, row, col, app.heiboard[row][col])
+            elif app.view == 1:
+                if app.heiboard[row][col] == 1:
+                    drawHeight(app, canvas, row, col, app.heiboard[row][col])
+            elif app.view == 2:
+                if app.heiboard[row][col] == 2:
+                    drawHeight(app, canvas, row, col, app.heiboard[row][col])
+
 
 def drawCell(app, canvas, row, col):   
     #top  
@@ -355,10 +444,14 @@ def drawCell(app, canvas, row, col):
     tx, bx, lx, rx = tx + app.width/2, bx + app.width/2, lx + app.width/2, rx + app.width/2
     if app.resboard[row][col] == 1:
         canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "tan", width = 3, outline = "black")
-    elif app.pieceSelection != None and row == app.pieceSelection.row and col == app.pieceSelection.col:
-        canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod yellow", width = 3, outline = "black")
     else:
         canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "dimgrey", width = 3, outline = "black")
+    if app.pieceSelection != None and row == app.pieceSelection.row and col == app.pieceSelection.col:
+        canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod yellow", width = 3, outline = "black")
+    if app.attacking == True:
+        if (row, col) == (app.aimSelectionRow, app.aimSelectionCol):
+            canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "tomato2", width = 3, outline = "black")
+    
     
 def drawHeight(app, canvas, row, col, howhigh):
     if howhigh <= 0:
@@ -385,6 +478,13 @@ def drawHeight(app, canvas, row, col, howhigh):
     canvas.create_polygon(lx, hly, bx, hby, bx, by, lx, ly, fill = "dimgrey", width = 3, outline = "black")
     canvas.create_polygon(bx, hby, bx, by, rx, ry, rx, hry, fill = "dimgrey", width = 3, outline = "black")
     canvas.create_polygon(tx, hty, rx, hry, bx, hby, lx, hly, fill = "dimgrey", width = 3, outline = "black")
+    if app.pieceSelection != None and row == app.pieceSelection.row and col == app.pieceSelection.col:
+        canvas.create_polygon(tx, hty, rx, hry, bx, hby, lx, hly, fill = "light goldenrod yellow", width = 3, outline = "black")
+    if app.attacking == True:
+        if (row, col) == (app.aimSelectionRow, app.aimSelectionCol):
+            canvas.create_polygon(tx, hty, rx, hry, bx, hby, lx, hly, fill = "tomato2", width = 3, outline = "black")
+    drawPieces(app, row, col, canvas, high)
+    
 
 def drawGameOver(app, canvas):
     if app.isGameOver:
@@ -404,18 +504,18 @@ def drawGameInfo(app, canvas):
         canvas.create_text(app.width/9, app.height * 16/100, text = f"Player 2 Gold: {app.player2.gold}", fill = "White", font = "Barlow 15 ")
         canvas.create_text(app.width/7, app.height * 19/100, text = f"Player 2 Base Health: {app.player2.base}", fill = "White", font = "Barlow 15 ")
 
-def drawPiece(app, canvas, row, col, name, player):
+def drawPiece(app, canvas, row, col, name, player, height):
     x, y = getCellMidPoint(app, row, col)
     if player == 1:
         if name == "tank":
-            canvas.create_image(x, (y - 10), image=ImageTk.PhotoImage(app.tank))
+            canvas.create_image(x, (y - 10 - height), image=ImageTk.PhotoImage(app.tank))
         elif name == "collect":
-            canvas.create_image(x, (y - 15), image=ImageTk.PhotoImage(app.collect))
+            canvas.create_image(x, (y - 15 - height), image=ImageTk.PhotoImage(app.collect))
     else:
         if name == "etank":
-            canvas.create_image(x, (y - 10), image=ImageTk.PhotoImage(app.etank))
+            canvas.create_image(x, (y - 10 - height), image=ImageTk.PhotoImage(app.etank))
         elif name == "ecollect":
-            canvas.create_image(x, (y - 15), image=ImageTk.PhotoImage(app.ecollect))
+            canvas.create_image(x, (y - 15 - height), image=ImageTk.PhotoImage(app.ecollect))
 
 def drawBases(app, canvas):
     x1, y1 = getCellMidPoint(app, app.base1row, app.base1col)
@@ -423,13 +523,13 @@ def drawBases(app, canvas):
     canvas.create_image(x1, y1 - 10, image=ImageTk.PhotoImage(app.base1))
     canvas.create_image(x2, y2 - 10, image=ImageTk.PhotoImage(app.base2))
 
-def drawPieces(app, row, col, canvas):
+def drawPieces(app, row, col, canvas, height):
     for piece in app.player1.pieces:
         if piece.row == row and piece.col == col:
-            drawPiece(app, canvas, piece.row, piece.col, piece.name, 1)
+            drawPiece(app, canvas, piece.row, piece.col, piece.name, 1, height)
     for piece in app.player2.pieces:
         if piece.row == row and piece.col == col:
-            drawPiece(app, canvas, piece.row, piece.col, piece.name, 2)
+            drawPiece(app, canvas, piece.row, piece.col, piece.name, 2, height)
 
 def drawSelection(app, canvas):
      if app.pieceSelection != None:
@@ -445,9 +545,7 @@ def drawAttackBtn(app, canvas):
     if app.pieceSelection != None:
         if app.pieceSelection.team == app.currentPlayer:
             canvas.create_rectangle(app. width*70/80, app.height * 3/4, app.width * 79/80, app.height * 75/80, fill = "dimgrey")
-            canvas.create_rectangle(app. width*59/80, app.height * 3/4, app.width * 68/80, app.height * 75/80, fill = "dimgrey")
-            canvas.create_text(app.width * 75/80, app.height * 67/80, text = "attack", fill = "White")
-            canvas.create_text(app.width * 64/80, app.height * 67/80, text = "move", fill = "White")
+            canvas.create_text(app.width * 75/80, app.height * 67/80, text = "ATTACK", fill = "White")
 
 def drawGameOver(app, canvas):
     if app.gameOver:
@@ -466,7 +564,6 @@ def drawGameOver(app, canvas):
 def redrawAll(app, canvas):
     drawBoard(app, canvas)
     drawGameInfo(app, canvas)
-    drawEndButton(app, canvas)
     drawSelection(app, canvas)
     drawAttackBtn(app, canvas)
     drawBases(app, canvas)
