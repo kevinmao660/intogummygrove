@@ -125,7 +125,7 @@ def appStarted(app):
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
                     ]
     app.heiloc = [(0,2), (0,3), (0,5), (0,6), (8,2), (8,3), (8,5), (8,6)]
-    app.hght = app.cellSize / 2
+    app.hght = app.cellSize * 1/2
 
 
 #ISOMETRIC  
@@ -179,7 +179,7 @@ def buyTank(app, row, col, player):
             tank = Piece("tank", 300, 1000, 5, 200, row, col, 2, 1)
             player.buyPiece(tank)
         else:
-            tank = Piece("etank", 300, 100, 5, 200, row, col, 2, 2)
+            tank = Piece("etank", 300, 1000, 5, 200, row, col, 2, 2)
             player.buyPiece(tank)
 
 #USER INPUT FUNCTIONS
@@ -364,6 +364,8 @@ def drawCell(app, canvas, row, col):
     tx, bx, lx, rx = tx + app.width/2, bx + app.width/2, lx + app.width/2, rx + app.width/2
     if app.resboard[row][col] == 1:
         canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "turquoise", width = 3, outline = "black")
+    elif app.pieceSelection != None and row == app.pieceSelection.row and col == app.pieceSelection.col:
+        canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "red", width = 3, outline = "black")
     else:
         canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod", width = 3, outline = "black")
     
@@ -425,12 +427,12 @@ def drawPiece(app, canvas, row, col, name, player):
         if name == "tank":
             canvas.create_image(x, (y - 10), image=ImageTk.PhotoImage(app.tank))
         elif name == "collect":
-            canvas.create_image(x, (y-10), image=ImageTk.PhotoImage(app.collect))
+            canvas.create_image(x, (y - 15), image=ImageTk.PhotoImage(app.collect))
     else:
         if name == "etank":
             canvas.create_image(x, (y - 10), image=ImageTk.PhotoImage(app.etank))
         elif name == "ecollect":
-            canvas.create_image(x, (y-10), image=ImageTk.PhotoImage(app.ecollect))
+            canvas.create_image(x, (y - 15), image=ImageTk.PhotoImage(app.ecollect))
 
 def drawBases(app, canvas):
     x1, y1 = getCellMidPoint(app, app.base1row, app.base1col)
@@ -475,7 +477,8 @@ def drawGameOver(app, canvas):
         else:
             canvas.create_text(app.width/2, app.height/2, text = "GAME OVER PLAYER 1 WINS",
                                 font = "Times 15 bold", 
-                                fill = "light goldenrod yellow")
+                                fill = "light goldenrod yellow")\
+
 #REDRAWALL
 def redrawAll(app, canvas):
     drawBoard(app, canvas)
