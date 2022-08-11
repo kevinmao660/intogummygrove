@@ -319,11 +319,12 @@ def attackPiece(app, row, col, p):
     else:
         if row == app.base1row and col == app.base1col:
             app.player1.base -= p.attack
-        for enpiece in app.player1.pieces:
-            if enpiece.row == row and p.col == col:
-                p.atc(enpiece)
-                if enpiece.health <= 0:
-                    app.player1.pieces.remove(enpiece)            
+        else:
+            for enpiece in app.player1.pieces:
+                if enpiece.row == row and enpiece.col == col:
+                    p.atc(enpiece)
+                    if enpiece.health <= 0:
+                        app.player1.pieces.remove(enpiece)            
 #DRAW BOARD FUNCTIONS
 def drawBoard(app, canvas):
     canvas.create_rectangle(0, 0, app.width, app.height, fill = "grey15")
@@ -353,11 +354,11 @@ def drawCell(app, canvas, row, col):
     ty, by, ly, ry = ty + app.tandbMargin, by + app.tandbMargin, ly + app.tandbMargin, ry + app.tandbMargin
     tx, bx, lx, rx = tx + app.width/2, bx + app.width/2, lx + app.width/2, rx + app.width/2
     if app.resboard[row][col] == 1:
-        canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "dark green", width = 3, outline = "black")
+        canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "tan", width = 3, outline = "black")
     elif app.pieceSelection != None and row == app.pieceSelection.row and col == app.pieceSelection.col:
-        canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "red", width = 3, outline = "black")
+        canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "light goldenrod yellow", width = 3, outline = "black")
     else:
-        canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "saddle brown", width = 3, outline = "black")
+        canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "dimgrey", width = 3, outline = "black")
     
 def drawHeight(app, canvas, row, col, howhigh):
     if howhigh <= 0:
@@ -381,9 +382,9 @@ def drawHeight(app, canvas, row, col, howhigh):
     tx, bx, lx, rx = tx + app.width/2, bx + app.width/2, lx + app.width/2, rx + app.width/2
     high = howhigh * app.hght
     hty, hby, hly, hry = ty - high, by - high, ly - high, ry - high
-    canvas.create_polygon(lx, hly, bx, hby, bx, by, lx, ly, fill = "saddle brown", width = 3, outline = "black")
-    canvas.create_polygon(bx, hby, bx, by, rx, ry, rx, hry, fill = "saddle brown", width = 3, outline = "black")
-    canvas.create_polygon(tx, hty, rx, hry, bx, hby, lx, hly, fill = "saddle brown", width = 3, outline = "black")
+    canvas.create_polygon(lx, hly, bx, hby, bx, by, lx, ly, fill = "dimgrey", width = 3, outline = "black")
+    canvas.create_polygon(bx, hby, bx, by, rx, ry, rx, hry, fill = "dimgrey", width = 3, outline = "black")
+    canvas.create_polygon(tx, hty, rx, hry, bx, hby, lx, hly, fill = "dimgrey", width = 3, outline = "black")
 
 def drawGameOver(app, canvas):
     if app.isGameOver:
@@ -394,14 +395,14 @@ def drawGameOver(app, canvas):
 
 def drawGameInfo(app, canvas):
     canvas.create_rectangle(app.width/80,app.height/40, app.width/4, app.height/4, fill = "grey7", outline = "navy", width = 1)
-    canvas.create_text(app.width/10, app.height/10, text = f"Current Player is : {app.currentPlayer}", fill = "White")
-    canvas.create_text(app.width/10, app.height/8, text = f"Total Number of Turns: {app.turns}", fill = "White")
+    canvas.create_text(app.width/9, app.height * 10/100, text = f"Current Player: {app.currentPlayer}", fill = "White", font = "Mono 15 ")
+    canvas.create_text(app.width/9, app.height * 13/100, text =  f"Total Num Turns: {app.turns}", fill = "White", font = "Barlow 15 ")
     if app.currentPlayer == 1:
-        canvas.create_text(app.width/10, app.height/7, text = f"Player Gold: {app.player1.gold}", fill = "White")
-        canvas.create_text(app.width/10, app.height/6, text = f"Player Base Health: {app.player1.base}", fill = "White")
+        canvas.create_text(app.width/9, app.height * 16/100, text = f"Player 1 Gold: {app.player1.gold}", fill = "White", font = "Barlow 15 ")
+        canvas.create_text(app.width/7, app.height * 19/100, text = f"Player 1 Base Health: {app.player1.base}", fill = "White", font = "Barlow 15 ")
     if app.currentPlayer == 2:
-        canvas.create_text(app.width/10, app.height/7, text = f"Player Gold: {app.player2.gold}", fill = "White")
-        canvas.create_text(app.width/10, app.height/6, text = f"Player Base Health: {app.player2.base}", fill = "White")
+        canvas.create_text(app.width/9, app.height * 16/100, text = f"Player 2 Gold: {app.player2.gold}", fill = "White", font = "Barlow 15 ")
+        canvas.create_text(app.width/7, app.height * 19/100, text = f"Player 2 Base Health: {app.player2.base}", fill = "White", font = "Barlow 15 ")
 
 def drawPiece(app, canvas, row, col, name, player):
     x, y = getCellMidPoint(app, row, col)
@@ -432,7 +433,7 @@ def drawPieces(app, row, col, canvas):
 
 def drawSelection(app, canvas):
      if app.pieceSelection != None:
-        canvas.create_rectangle(app. width*60/80, app.height/40, app.width * 79/80, app.height / 4, fill = "saddle brown")
+        canvas.create_rectangle(app. width*60/80, app.height/40, app.width * 79/80, app.height / 4, fill = "dimgrey")
         canvas.create_text(app.width * 5/6, app.height/10, text = f"Current Selection = {app.pieceSelection.name}", fill = "White")
         canvas.create_text(app.width * 5/6, app.height/8, text = f"Health: {app.pieceSelection.health}", fill = "White")
         canvas.create_text(app.width * 5/6, app.height/7, text = f"Range: {app.pieceSelection.range}", fill = "White")
@@ -443,8 +444,8 @@ def drawSelection(app, canvas):
 def drawAttackBtn(app, canvas):
     if app.pieceSelection != None:
         if app.pieceSelection.team == app.currentPlayer:
-            canvas.create_rectangle(app. width*70/80, app.height * 3/4, app.width * 79/80, app.height * 75/80, fill = "saddle brown")
-            canvas.create_rectangle(app. width*59/80, app.height * 3/4, app.width * 68/80, app.height * 75/80, fill = "saddle brown")
+            canvas.create_rectangle(app. width*70/80, app.height * 3/4, app.width * 79/80, app.height * 75/80, fill = "dimgrey")
+            canvas.create_rectangle(app. width*59/80, app.height * 3/4, app.width * 68/80, app.height * 75/80, fill = "dimgrey")
             canvas.create_text(app.width * 75/80, app.height * 67/80, text = "attack", fill = "White")
             canvas.create_text(app.width * 64/80, app.height * 67/80, text = "move", fill = "White")
 
