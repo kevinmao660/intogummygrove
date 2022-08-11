@@ -38,6 +38,7 @@ class Piece:
         self.mobility = mobility
         self.acted = False
         self.team = team
+        self.moved = 0
 
     def atc(self, other):
         if self.team != other.team:
@@ -224,20 +225,26 @@ def keyPressed(app, event):
         for piece in app.player2.pieces:
             piece.acted = False
     if event.key == 's':
-        app.moving = True
+        if not app.moving:
+            app.moving = True
+        else:
+            app.moving = False
     if event.key == 'a':
-        app.attacking = True
+        if not app.attacking:
+            app.attacking = True
+        else:
+            app.attacking = False
     if event.key == 'Up':
         if app.pieceSelection != None and app.pieceSelection.team == app.currentPlayer and app.moving:
             if not app.pieceSelection.acted:
                 if isLegal(app, app.pieceSelection.row - 1, app.pieceSelection.col):
                     if abs(app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)] - app.heiboard[int(app.pieceSelection.row) - 1][int(app.pieceSelection.col)]) <= 1:
                         app.pieceSelection.row -= 1
-                        if app.movement == 0:
-                            app.movement += 1
+                        if app.pieceSelection.moved < (app.pieceSelection.mobility - 1):
+                            app.pieceSelection.moved += 1
                         else:
                             app.pieceSelection.acted = True
-                            app.movement = 0
+                            app.pieceSelection.moved = 0
                         app.pieceSelection.range += app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)]
 
             else:
@@ -290,6 +297,8 @@ def keyPressed(app, event):
         app.view = 2
     if event.key == '0':
         app.view = 0
+    if event.key == '3':
+        app.view = 3
 
 def getTile(app, event):
     row, col = getRowCol(app, event.x, event.y)
@@ -306,8 +315,9 @@ def selectPiece(app, event):
 
 def aimPiece(app, event):
     row, col = getRowCol(app, event.x, event.y)
-    app.aimSelectionRow = row
-    app.aimSelectionCol = col
+    if gridDis(app.pieceSelection.row, app.pieceSelection.col, row, col) <= app.pieceSelection.range:
+        app.aimSelectionRow = row
+        app.aimSelectionCol = col
 
 def addMoney(app):
     for piece in app.player1.pieces:
@@ -416,9 +426,14 @@ def drawBoard(app, canvas):
                     drawPieces(app, row, col, canvas, 0)
                 drawHeight(app, canvas, row, col, app.heiboard[row][col])
             elif app.view == 1:
-                if app.heiboard[row][col] == 1:
+                if app.heiboard[row][col] == 0:
+                    drawCell(app, canvas, row, col)
+                    drawPieces(app, row, col, canvas, 0)
                     drawHeight(app, canvas, row, col, app.heiboard[row][col])
             elif app.view == 2:
+                if app.heiboard[row][col] == 1:
+                    drawHeight(app, canvas, row, col, app.heiboard[row][col])
+            elif app.view == 3:
                 if app.heiboard[row][col] == 2:
                     drawHeight(app, canvas, row, col, app.heiboard[row][col])
 
