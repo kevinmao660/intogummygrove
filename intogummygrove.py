@@ -164,8 +164,10 @@ def getRowCol(app, x, y):
 
 #Buttons 
 
+#fonts
+#comic sans
 
-#BUYBUYBUY
+#BUYBUYBUY maybe make damage from father ranges lower
 def buyResourceCollector(app, row, col, player):
     if len(player.pieces) < 8:
         if app.currentPlayer == 1:
@@ -510,14 +512,14 @@ def drawGameOver(app, canvas):
 
 def drawGameInfo(app, canvas):
     canvas.create_rectangle(app.width/80,app.height/40, app.width/4, app.height/4, fill = "grey7", outline = "navy", width = 1)
-    canvas.create_text(app.width/9, app.height * 10/100, text = f"Current Player: {app.currentPlayer}", fill = "White", font = "Mono 15 ")
-    canvas.create_text(app.width/9, app.height * 13/100, text =  f"Total Num Turns: {app.turns}", fill = "White", font = "Barlow 15 ")
+    canvas.create_text(app.width/30, app.height * 10/100, text = f"Current Player: {app.currentPlayer}", fill = "White", font = "8514oem 22 bold", anchor = "w")
+    canvas.create_text(app.width/30, app.height * 13/100, text =  f"Total Num Turns: {app.turns}", fill = "White", font = "8514oem 15 ", anchor = "w")
     if app.currentPlayer == 1:
-        canvas.create_text(app.width/9, app.height * 16/100, text = f"Player 1 Gold: {app.player1.gold}", fill = "White", font = "Barlow 15 ")
-        canvas.create_text(app.width/7, app.height * 19/100, text = f"Player 1 Base Health: {app.player1.base}", fill = "White", font = "Barlow 15 ")
+        canvas.create_text(app.width/30, app.height * 16/100, text = f"Player 1 Gold: {app.player1.gold}", fill = "White", font = "8514oem 15 ", anchor = "w")
+        canvas.create_text(app.width/30, app.height * 19/100, text = f"Player 1 Base Health: {app.player1.base}", fill = "White", font = "8514oem 15 ", anchor = "w")
     if app.currentPlayer == 2:
-        canvas.create_text(app.width/9, app.height * 16/100, text = f"Player 2 Gold: {app.player2.gold}", fill = "White", font = "Barlow 15 ")
-        canvas.create_text(app.width/7, app.height * 19/100, text = f"Player 2 Base Health: {app.player2.base}", fill = "White", font = "Barlow 15 ")
+        canvas.create_text(app.width/30, app.height * 16/100, text = f"Player 2 Gold: {app.player2.gold}", fill = "White", font = "8514oem 15 ", anchor = "w")
+        canvas.create_text(app.width/30, app.height * 19/100, text = f"Player 2 Base Health: {app.player2.base}", fill = "White", font = "8514oem 15", anchor = "w")
 
 def drawPiece(app, canvas, row, col, name, player, height):
     x, y = getCellMidPoint(app, row, col)
@@ -548,13 +550,13 @@ def drawPieces(app, row, col, canvas, height):
 
 def drawSelection(app, canvas):
      if app.pieceSelection != None:
-        canvas.create_rectangle(app. width*60/80, app.height/40, app.width * 79/80, app.height / 4, fill = "dimgrey")
-        canvas.create_text(app.width * 5/6, app.height/10, text = f"Current Selection = {app.pieceSelection.name}", fill = "White")
-        canvas.create_text(app.width * 5/6, app.height/8, text = f"Health: {app.pieceSelection.health}", fill = "White")
-        canvas.create_text(app.width * 5/6, app.height/7, text = f"Range: {app.pieceSelection.range}", fill = "White")
-        canvas.create_text(app.width * 5/6, app.height/6, text = f"Damage: {app.pieceSelection.attack}", fill = "White")
-        canvas.create_text(app.width * 5/6, app.height/5, text = f"Acted: {app.pieceSelection.acted}", fill = "White")
-        canvas.create_text(app.width * 5/6, app.height * 9/40, text = f"Mobility: {app.pieceSelection.mobility}", fill = "White")
+        canvas.create_rectangle(app. width*60/80, app.height/40, app.width * 79/80, app.height / 4, fill = "grey7", outline = "navy", width = 1)
+        canvas.create_text(app.width * 77/100, app.height * 7.5/100, text = f"Current Selection = {app.pieceSelection.name}", fill = "White", anchor = 'w', font = "8514oem 22")
+        canvas.create_text(app.width * 77/100, app.height * 10/100, text = f"Health: {app.pieceSelection.health}", fill = "White", anchor = 'w', font = "8514oem 22")
+        canvas.create_text(app.width * 77/100, app.height * 12.5/100, text = f"Range: {app.pieceSelection.range}", fill = "White", anchor = 'w', font = "8514oem 22")
+        canvas.create_text(app.width * 77/100, app.height * 15/100, text = f"Damage: {app.pieceSelection.attack}", fill = "White", anchor = 'w', font = "8514oem 22")
+        canvas.create_text(app.width * 77/100, app.height * 17.5/100, text = f"Acted: {app.pieceSelection.acted}", fill = "White", anchor = 'w', font = "8514oem 22")
+        canvas.create_text(app.width * 77/100, app.height * 20/100, text = f"Mobility: {app.pieceSelection.mobility}", fill = "White", anchor = 'w', font = "8514oem 22")
 
 def drawAttackBtn(app, canvas):
     if app.pieceSelection != None:
