@@ -17,7 +17,7 @@ from cmu_112_graphics import *
 class Player:
     def __init__(self, name):
         self.name = name
-        self.gold = 1000 
+        self.gold = 500 
         self.base = 1000
         self.pieces = []
     
@@ -52,7 +52,6 @@ class Piece:
 #################################################
 def playIntoGummyGrove():
     runApp(width = 1280, height = 720)
-    pass
 
 def appStarted(app):
     #Grid Layout
@@ -101,32 +100,29 @@ def appStarted(app):
     app.moving = False
 
     #Resource Board: 
-    app.resboard = [[ 1, 0, 0, 0, 0, 0, 0, 0, 1 ],
+    app.resboard = [[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 1, 0, 0, 0, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 0, 1, 0, 0, 0, 0, 1, 0, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                    [ 1, 0, 0, 0, 0, 0, 0, 0, 1 ]
+                    [ 0, 0, 0, 0, 1, 0, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
                     ]
-    app.reslocations = [(0,0), (8,0), (0,8), (8,8)]
 
     #heightBoard
     app.heiboard = [[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                    [ 1, 0, 1, 0, 0, 0, 0, 1, 2 ],
-                    [ 1, 0, 2, 0, 0, 0, 0, 0, 1 ],
+                    [ 1, 0, 1, 0, 0, 0, 0, 0, 2 ],
+                    [ 1, 0, 0, 0, 0, 1, 2, 0, 1 ],
                     [ 0, 0, 1, 0, 2, 1, 0, 0, 0 ],
-                    [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 1 ],
                     [ 1, 0, 0, 1, 0, 0, 0, 0, 1 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 1, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
                     ]
-    app.heiloc = [(0,2), (0,3), (0,5), (0,6), (8,2), (8,3), (8,5), (8,6)]
     app.hght = app.cellSize * 1/2
-
 
 #ISOMETRIC  
 def getIsometric(x, y, app):
@@ -138,21 +134,17 @@ def getCellMidPoint(app, row, col):
     topx = col * app.cellSize
     topy = row * app.cellSize
     tx,ty = getIsometric(topx, topy, app)
-
     leftx = (col) * app.cellSize
     lefty = (row + 1) * app.cellSize
     lx,ly = getIsometric(leftx, lefty, app)
     tx, ly = tx + app.width/2, ly + app.tandbMargin
     return tx, ly
-    pass
 
 def getRowCol(app, x, y):
     x -= app.width/2 
     y -= app.tandbMargin
-
     col = (y + 0.5 * x) // app.cellSize
     row = (y - 0.5 * x) // app.cellSize
-
     return row, col
 
 #Buttons 
@@ -161,7 +153,6 @@ def drawEndButton(app, canvas):
                         app.nextturnx + app.buybtnr, app.nextturny + app.buybtnr, 
                         fill = "goldenrod")
     canvas.create_text(app.nextturnx, app.nextturny, text = "End Turn")
-    pass
 
 #BUYBUYBUY
 def buyResourceCollector(app, row, col, player):
@@ -232,7 +223,6 @@ def addMoney(app):
         if piece.name == "ecollect":
             if (piece.row, piece.col) in app.reslocations:
                 app.player2.gold += 100
-    pass
 
 def mousePressed(app, event):
     if app.gameOver:
@@ -283,7 +273,6 @@ def mousePressed(app, event):
     #go to attacking
     elif event.x > (app.width * 70/80) and event.x < (app.width * 79/80) and event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
             app.attacking = True
-
     #Selecting a Piece
     else:
         app.moving, app.attacking = False, False
@@ -337,29 +326,24 @@ def drawBoard(app, canvas):
             drawCell(app, canvas, row, col)
             drawPieces(app, row, col, canvas)
             drawHeight(app, canvas, row, col, app.heiboard[row][col])
-    pass
 
 def drawCell(app, canvas, row, col):   
     #top  
     topx = col * app.cellSize
     topy = row * app.cellSize
     tx,ty = getIsometric(topx, topy, app)
-
     #bottom
     botx = (col + 1) * app.cellSize
     boty = (row + 1) * app.cellSize
     bx,by = getIsometric(botx, boty, app)
-
     #left
     leftx = (col) * app.cellSize
     lefty = (row + 1) * app.cellSize
     lx,ly = getIsometric(leftx, lefty, app)
-
     #right
     rightx = (col + 1) * app.cellSize
     righty = (row) * app.cellSize
     rx,ry = getIsometric(rightx, righty, app)
-
     ty, by, ly, ry = ty + app.tandbMargin, by + app.tandbMargin, ly + app.tandbMargin, ry + app.tandbMargin
     tx, bx, lx, rx = tx + app.width/2, bx + app.width/2, lx + app.width/2, rx + app.width/2
     if app.resboard[row][col] == 1:
@@ -375,32 +359,25 @@ def drawHeight(app, canvas, row, col, howhigh):
     topx = col * app.cellSize
     topy = row * app.cellSize
     tx,ty = getIsometric(topx, topy, app)
-
     #bottom
     botx = (col + 1) * app.cellSize
     boty = (row + 1) * app.cellSize
     bx,by = getIsometric(botx, boty, app)
-
     #left
     leftx = (col) * app.cellSize
     lefty = (row + 1) * app.cellSize
     lx,ly = getIsometric(leftx, lefty, app)
-
     #right
     rightx = (col + 1) * app.cellSize
     righty = (row) * app.cellSize
     rx,ry = getIsometric(rightx, righty, app)
-
     ty, by, ly, ry = ty + app.tandbMargin, by + app.tandbMargin, ly + app.tandbMargin, ry + app.tandbMargin
     tx, bx, lx, rx = tx + app.width/2, bx + app.width/2, lx + app.width/2, rx + app.width/2
-
     high = howhigh * app.hght
-
     hty, hby, hly, hry = ty - high, by - high, ly - high, ry - high
     canvas.create_polygon(lx, hly, bx, hby, bx, by, lx, ly, fill = "light goldenrod", width = 3, outline = "black")
     canvas.create_polygon(bx, hby, bx, by, rx, ry, rx, hry, fill = "light goldenrod", width = 3, outline = "black")
     canvas.create_polygon(tx, hty, rx, hry, bx, hby, lx, hly, fill = "light goldenrod", width = 3, outline = "black")
-    pass
 
 def drawGameOver(app, canvas):
     if app.isGameOver:
@@ -488,7 +465,6 @@ def redrawAll(app, canvas):
     drawAttackBtn(app, canvas)
     drawBases(app, canvas)
     drawGameOver(app, canvas)
-    pass
 
 #TIMERFIRED
 def timerFired(app):
