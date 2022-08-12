@@ -85,12 +85,26 @@ def appStarted(app):
     app.etank = app.loadImage('etank.png')
     app.ecollect = app.loadImage('ecollect.png')
 
+    app.panda = app.loadImage('panda.png')
+    app.panda = app.scaleImage(app.panda, 1/8)
+
+    app.cat = app.loadImage('cat.png')
+    app.cat = app.scaleImage(app.cat, 1/4)
+
+    app.capy = app.loadImage('capy.png')
+    app.capy = app.scaleImage(app.capy, 1/4)
+
     app.base1 = app.loadImage('base1.png')
     app.base1row = 8
     app.base1col = 4
     app.base2 = app.loadImage('base2.png')
     app.base2row = 0
     app.base2col = 4
+
+    app.gummygrove = app.loadImage('gummygrove.jpg')
+    app.gumgrov = app.scaleImage(app.gummygrove, 1/8)
+
+    app.avatar = app.cat
 
     #UI Locations 
     app.nextturnx = app.width / 8
@@ -129,8 +143,8 @@ def appStarted(app):
                     [ 0, 0, 0, 0, 0, 0, 0, 1, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
                     ]
+
     app.hght = app.cellSize * 1/2
-    app.aim = (-1, -1)
 
     #views
     app.view = 0
@@ -138,6 +152,22 @@ def appStarted(app):
     app.movement = 0
     app.aimSelectionRow = -1
     app.aimSelectionCol = -1
+
+    app.mode = 'splScrnMode'
+
+# Splash Screen Mode
+
+def splScrnMode_redrawAll(app, canvas):
+    canvas.create_rectangle(0, 0, app.width, app.height, fill = "white")
+    canvas.create_text(app.width/2, 150, text='INTO GUMMY GROVE!', font = "Unispace 22 bold", fill = "grey15")
+    canvas.create_text(app.width/2, 250, text='Press any key for the game!', fill = "grey15")
+    canvas.create_image(app.width / 2, (app.height * 5/8), image=ImageTk.PhotoImage(app.gumgrov))
+    canvas.create_image(app.width * 1 / 2, (app.height * 7/8), image=ImageTk.PhotoImage(app.cat))
+    canvas.create_image(app.width * 13 / 16, (app.height * 6/8), image=ImageTk.PhotoImage(app.panda))
+    canvas.create_image(app.width * 3 / 16, (app.height * 5/8), image=ImageTk.PhotoImage(app.capy))
+
+def splScrnMode_keyPressed(app, event):
+    app.mode = 'gameMode'
 
 #ISOMETRIC  
 def getIsometric(x, y, app):
@@ -162,28 +192,23 @@ def getRowCol(app, x, y):
     row = (y - 0.5 * x) // app.cellSize
     return row, col
 
-#Buttons 
-
-#fonts
-#comic sans
-
 #BUYBUYBUY maybe make damage from father ranges lower
 def buyResourceCollector(app, row, col, player):
     if len(player.pieces) < 8:
         if app.currentPlayer == 1:
-            resourceCollector = Piece("collect", 100, 0, 0, 200, row, col, 0, 1)
+            resourceCollector = Piece("collect", 100, 0, 0, 200, row, col, 1, 1)
             player.buyPiece(resourceCollector)
         else:
-            resourceCollector = Piece("ecollect", 100, 0, 0, 200, row, col, 0, 2)
+            resourceCollector = Piece("ecollect", 100, 0, 0, 200, row, col, 1, 2)
             player.buyPiece(resourceCollector)
 
 def buyTank(app, row, col, player):
     if len(player.pieces) < 8:
         if app.currentPlayer == 1:
-            tank = Piece("tank", 300, 1000, 5, 200, row, col, 2, 1)
+            tank = Piece("tank", 300, 200, 5, 200, row, col, 2, 1)
             player.buyPiece(tank)
         else:
-            tank = Piece("etank", 300, 1000, 5, 200, row, col, 2, 2)
+            tank = Piece("etank", 300, 200, 5, 200, row, col, 2, 2)
             player.buyPiece(tank)
 
 #USER INPUT FUNCTIONS
@@ -191,7 +216,11 @@ import math
 def distance(x0, y0, x1, y1):
     return math.sqrt((x1-x0)**2 + (y1-y0)**2)
 
-def keyPressed(app, event):
+def gameMode_keyPressed(app, event):
+    if event.key == 'p':
+        app.mode = 'splScrnMode'
+        if app.gameOver:
+            appStarted(app)
     if app.gameOver:
         return
     if event.key == 'q':
@@ -232,10 +261,11 @@ def keyPressed(app, event):
         else:
             app.moving = False
     if event.key == 'a':
-        if not app.attacking:
-            app.attacking = True
-        else:
-            app.attacking = False
+        if app.pieceSelection != None and not app.pieceSelection.acted:
+            if not app.attacking:
+                app.attacking = True
+            else:
+                app.attacking = False
     if event.key == 'Up':
         if app.pieceSelection != None and app.pieceSelection.team == app.currentPlayer and app.moving:
             if not app.pieceSelection.acted:
@@ -257,11 +287,11 @@ def keyPressed(app, event):
                 if isLegal(app, app.pieceSelection.row, app.pieceSelection.col + 1):
                     if abs(app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)] - app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col) + 1]) <= 1:
                         app.pieceSelection.col += 1
-                        if app.movement == 0:
-                            app.movement += 1
+                        if app.pieceSelection.moved < (app.pieceSelection.mobility - 1):
+                            app.pieceSelection.moved += 1
                         else:
                             app.pieceSelection.acted = True
-                            app.movement = 0
+                            app.pieceSelection.moved = 0
                         app.pieceSelection.range += app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)]
             else:
                 app.moving, app.attacking = False, False
@@ -271,11 +301,11 @@ def keyPressed(app, event):
                 if isLegal(app, app.pieceSelection.row + 1, app.pieceSelection.col):
                     if abs(app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)] - app.heiboard[int(app.pieceSelection.row) + 1][int(app.pieceSelection.col)]) <= 1:
                         app.pieceSelection.row += 1
-                        if app.movement == 0:
-                            app.movement += 1
+                        if app.pieceSelection.moved < (app.pieceSelection.mobility - 1):
+                            app.pieceSelection.moved += 1
                         else:
                             app.pieceSelection.acted = True
-                            app.movement = 0
+                            app.pieceSelection.moved = 0
                         app.pieceSelection.range += app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)]
             else:
                 app.moving, app.attacking = False, False
@@ -285,11 +315,11 @@ def keyPressed(app, event):
                 if isLegal(app, app.pieceSelection.row, app.pieceSelection.col - 1):
                     if abs(app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)] - app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col) - 1]) <= 1:
                         app.pieceSelection.col -= 1
-                        if app.movement == 0:
-                            app.movement += 1
+                        if app.pieceSelection.moved < (app.pieceSelection.mobility - 1):
+                            app.pieceSelection.moved += 1
                         else:
                             app.pieceSelection.acted = True
-                            app.movement = 0
+                            app.pieceSelection.moved = 0
                         app.pieceSelection.range += app.heiboard[int(app.pieceSelection.row)][int(app.pieceSelection.col)]
             else:
                 app.moving, app.attacking = False, False
@@ -301,6 +331,55 @@ def keyPressed(app, event):
         app.view = 0
     if event.key == '3':
         app.view = 3
+    
+    if event.key == 'm': 
+        appStarted(app)
+        from random import randint
+        app.heiboard[0][0] = randint(0, 2)
+        app.heiboard[8][0] = randint(0, 2)
+        app.heiboard[0][8] = randint(0, 2)
+        app.heiboard[8][8] = randint(0, 2)
+        chunkSize = app.rows - 1
+        while(chunkSize > 1):
+            half = chunkSize / 2
+            half = int(half)
+            #square step
+            for row in range(0, 8, chunkSize):
+                for col in range(0, 8, chunkSize):
+                    avg = (app.heiboard[row][col] + app.heiboard[row][col+ chunkSize] + app.heiboard[row + chunkSize][col] + app.heiboard[row + chunkSize][col + chunkSize]) / 4
+                    app.heiboard[int(row + half)][int(col + half)] = int(avg) + randint(0,1)
+            chunkSize /= 2
+            chunkSize = int(chunkSize)
+        #makes resource locations and bases at height 0
+        for rows in range(len(app.heiboard)):
+            for cols in range(len(app.heiboard[rows])):
+                if app.resboard[rows][cols] == 1:
+                    app.heiboard[rows][cols] = 0
+        app.heiboard[0][4] == 0
+        app.heiboard[8][4] == 0
+    if event.key == 'n':
+        appStarted(app)
+        app.heiboard = [[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+                    [ 1, 0, 1, 0, 0, 0, 0, 0, 2 ],
+                    [ 1, 0, 0, 0, 0, 1, 2, 0, 1 ],
+                    [ 0, 0, 1, 0, 2, 1, 0, 0, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 1 ],
+                    [ 1, 0, 0, 1, 0, 0, 0, 0, 1 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 1, 0 ],
+                    [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+                    ]
+    if event.key == 'v':
+        app.avatar = app.capy
+        pass
+    
+    if event.key == 'x':
+        app.avatar = app.panda
+        pass
+    
+    if event.key == 'k':
+        app.avatar = app.cat
+        pass
 
 def getTile(app, event):
     row, col = getRowCol(app, event.x, event.y)
@@ -331,28 +410,10 @@ def addMoney(app):
             if (piece.row, piece.col) in app.reslocations:
                 app.player2.gold += 50
 
-def mousePressed(app, event):
+def gameMode_mousePressed(app, event):
     if app.gameOver:
         return
     row, col = getRowCol(app, event.x, event.y)
-    # #Move Piece
-    # if app.moving:
-    #     if app.pieceSelection.team == app.currentPlayer:
-    #         if not app.pieceSelection.acted:
-    #             if isLegal(app, row, col):
-    #                 if not app.pieceSelection.mobility < gridDis(app.pieceSelection.row, app.pieceSelection.col, row, col):
-    #                     if not app.heiboard[int(row)][int(col)] == 1:
-    #                         movePiece(app, row, col, app.pieceSelection)
-    #                         app.pieceSelection.acted = True
-    #                         app.pieceSelection = None
-    #                         app.moving, app.attacking = False, False
-    #         else:
-    #             app.moving, app.attacking = False, False
-    # #go to moving
-    # elif event.x > (app.width * 59/80) and event.x < (app.width * 68/80) and event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
-    #         app.moving = True
-    #attack the piece
-    #go to attacking
     if event.x > (app.width * 70/80) and event.x < (app.width * 79/80) and event.y > (app.height * 3/4) and event.y < (app.height * 75/80):
         if app.attacking:
             if app.pieceSelection.team == app.currentPlayer:
@@ -370,7 +431,7 @@ def mousePressed(app, event):
                     app.moving, app.attacking = False, False
     #Selecting a Piece
     else:
-        if app.attacking:
+        if app.pieceSelection != None and app.attacking:
             aimPiece(app, event)
         else:
             app.moving, app.attacking = False, False
@@ -388,6 +449,8 @@ def isLegal(app, row, col):
     for pieces in app.player2.pieces:
         if pieces.row == row and pieces.col == col:
             return False
+    if (row, col) == (app.base1row, app.base1col) or (row, col) == (app.base2row, app.base2col):
+        return False
     return True
 
 def movePiece(app, row, col, piece):
@@ -501,25 +564,26 @@ def drawHeight(app, canvas, row, col, howhigh):
         if (row, col) == (app.aimSelectionRow, app.aimSelectionCol):
             canvas.create_polygon(tx, hty, rx, hry, bx, hby, lx, hly, fill = "tomato2", width = 3, outline = "black")
     drawPieces(app, row, col, canvas, high)
-    
-
-def drawGameOver(app, canvas):
-    if app.isGameOver:
-        canvas.create_rectangle(0, app.height/2 - 20, app.width,
-                                app.height/2 + 20, fill = "black")
-        canvas.create_text(app.width/2, app.height/2, text = "GAME OVER",
-                            font = "Times 15 bold", fill = "White")
 
 def drawGameInfo(app, canvas):
     canvas.create_rectangle(app.width/80,app.height/40, app.width/4, app.height/4, fill = "grey7", outline = "navy", width = 1)
-    canvas.create_text(app.width/30, app.height * 10/100, text = f"Current Player: {app.currentPlayer}", fill = "White", font = "8514oem 22 bold", anchor = "w")
-    canvas.create_text(app.width/30, app.height * 13/100, text =  f"Total Num Turns: {app.turns}", fill = "White", font = "8514oem 15 ", anchor = "w")
+    canvas.create_text(app.width/30, app.height * 10/100, text = f"Current Player: {app.currentPlayer}", fill = "White", font = "Unispace 15 bold", anchor = "w")
+    canvas.create_text(app.width/30, app.height * 13/100, text =  f"Total Num Turns: {app.turns}", fill = "White", font = "Unispace 11", anchor = "w")
     if app.currentPlayer == 1:
-        canvas.create_text(app.width/30, app.height * 16/100, text = f"Player 1 Gold: {app.player1.gold}", fill = "White", font = "8514oem 15 ", anchor = "w")
-        canvas.create_text(app.width/30, app.height * 19/100, text = f"Player 1 Base Health: {app.player1.base}", fill = "White", font = "8514oem 15 ", anchor = "w")
+        canvas.create_text(app.width/30, app.height * 16/100, text = f"Player 1 Gold: {app.player1.gold}", fill = "White", font = "Unispace 11", anchor = "w")
+        canvas.create_text(app.width/30, app.height * 19/100, text = f"Player 1 Base Health: {app.player1.base}", fill = "White", font = "Unispace 11", anchor = "w")
     if app.currentPlayer == 2:
-        canvas.create_text(app.width/30, app.height * 16/100, text = f"Player 2 Gold: {app.player2.gold}", fill = "White", font = "8514oem 15 ", anchor = "w")
-        canvas.create_text(app.width/30, app.height * 19/100, text = f"Player 2 Base Health: {app.player2.base}", fill = "White", font = "8514oem 15", anchor = "w")
+        canvas.create_text(app.width/30, app.height * 16/100, text = f"Player 2 Gold: {app.player2.gold}", fill = "White", font = "Unispace 11", anchor = "w")
+        canvas.create_text(app.width/30, app.height * 19/100, text = f"Player 2 Base Health: {app.player2.base}", fill = "White", font = "Unispace 11", anchor = "w")
+
+def drawControls(app, canvas):
+    canvas.create_rectangle(app.width/80, app.height * 77.5/100, app.width/4, app.height * 98/100, fill = "grey7", outline = "navy", width = 1)
+    canvas.create_text(app.width * 0.13125, app.height * 81/100, text = f"Controls", fill = "White", font = "Unispace 15 bold")
+    canvas.create_text(app.width/30, app.height * 85/100, text = f"Map Levels: 0, 1, 2, 3", fill = "White", font = "System 10", anchor = "w")
+    canvas.create_text(app.width/30, app.height * 87/100, text = f"Buy Collector: Q | Buy Tank: W", fill = "White", font = "System 10", anchor = "w")
+    canvas.create_text(app.width/30, app.height * 89/100, text = f"Move: S | Attack: A", fill = "White", font = "System 10", anchor = "w")
+
+
 
 def drawPiece(app, canvas, row, col, name, player, height):
     x, y = getCellMidPoint(app, row, col)
@@ -534,11 +598,14 @@ def drawPiece(app, canvas, row, col, name, player, height):
         elif name == "ecollect":
             canvas.create_image(x, (y - 15 - height), image=ImageTk.PhotoImage(app.ecollect))
 
+def drawAvatar(app, canvas):
+    canvas.create_image(app.width / 3, (app.height * 87/100), image=ImageTk.PhotoImage(app.avatar))
+
 def drawBases(app, canvas):
     x1, y1 = getCellMidPoint(app, app.base1row, app.base1col)
     x2, y2 = getCellMidPoint(app, app.base2row, app.base2col)
-    canvas.create_image(x1, y1 - 10, image=ImageTk.PhotoImage(app.base1))
-    canvas.create_image(x2, y2 - 10, image=ImageTk.PhotoImage(app.base2))
+    canvas.create_image(x1, y1 - 15, image=ImageTk.PhotoImage(app.base1))
+    canvas.create_image(x2, y2 - 15, image=ImageTk.PhotoImage(app.base2))
 
 def drawPieces(app, row, col, canvas, height):
     for piece in app.player1.pieces:
@@ -551,18 +618,22 @@ def drawPieces(app, row, col, canvas, height):
 def drawSelection(app, canvas):
      if app.pieceSelection != None:
         canvas.create_rectangle(app. width*60/80, app.height/40, app.width * 79/80, app.height / 4, fill = "grey7", outline = "navy", width = 1)
-        canvas.create_text(app.width * 77/100, app.height * 7.5/100, text = f"Current Selection = {app.pieceSelection.name}", fill = "White", anchor = 'w', font = "8514oem 22")
-        canvas.create_text(app.width * 77/100, app.height * 10/100, text = f"Health: {app.pieceSelection.health}", fill = "White", anchor = 'w', font = "8514oem 22")
-        canvas.create_text(app.width * 77/100, app.height * 12.5/100, text = f"Range: {app.pieceSelection.range}", fill = "White", anchor = 'w', font = "8514oem 22")
-        canvas.create_text(app.width * 77/100, app.height * 15/100, text = f"Damage: {app.pieceSelection.attack}", fill = "White", anchor = 'w', font = "8514oem 22")
-        canvas.create_text(app.width * 77/100, app.height * 17.5/100, text = f"Acted: {app.pieceSelection.acted}", fill = "White", anchor = 'w', font = "8514oem 22")
-        canvas.create_text(app.width * 77/100, app.height * 20/100, text = f"Mobility: {app.pieceSelection.mobility}", fill = "White", anchor = 'w', font = "8514oem 22")
+        canvas.create_text(app.width * 77/100, app.height * 7.5/100, text = f"Health: {app.pieceSelection.health}", fill = "White", anchor = 'w', font = "Unispace 10")
+        canvas.create_text(app.width * 77/100, app.height * 10/100, text = f"Range: {app.pieceSelection.range}", fill = "White", anchor = 'w', font = "Unispace 10")
+        canvas.create_text(app.width * 77/100, app.height * 12.5/100, text = f"Damage: {app.pieceSelection.attack}", fill = "White", anchor = 'w', font = "Unispace 10")
+        canvas.create_text(app.width * 77/100, app.height * 15/100, text = f"Acted: {app.pieceSelection.acted}", fill = "White", anchor = 'w', font = "Unispace 10")
+        canvas.create_text(app.width * 77/100, app.height * 17.5/100, text = f"Mobility: {app.pieceSelection.mobility}", fill = "White", anchor = 'w', font = "Unispace 10")
+        if app.moving:
+            canvas.create_text(app.width * 77/100, app.height * 20/100, text = f"Status: Moving", fill = "White", anchor = 'w', font = "Unispace 10")
+        if app.attacking:
+            canvas.create_text(app.width * 77/100, app.height * 20/100, text = f"Status: Attacking", fill = "White", anchor = 'w', font = "Unispace 10")
 
 def drawAttackBtn(app, canvas):
-    if app.pieceSelection != None:
-        if app.pieceSelection.team == app.currentPlayer:
-            canvas.create_rectangle(app. width*70/80, app.height * 3/4, app.width * 79/80, app.height * 75/80, fill = "dimgrey")
-            canvas.create_text(app.width * 75/80, app.height * 67/80, text = "ATTACK", fill = "White")
+    if app.attacking:
+        if app.aimSelectionRow != -1:
+            if app.pieceSelection.team == app.currentPlayer:
+                canvas.create_rectangle(app. width * 89/100, app.height * 81/100, app.width * 99/100, app.height * 98.5/100, fill = "tomato2")
+                canvas.create_text(app.width * 92.5/100, app.height * 90/100, text = "ATTACK", fill = "White", anchor = 'w', font = "Unispace 10 bold")
 
 def drawGameOver(app, canvas):
     if app.gameOver:
@@ -576,22 +647,20 @@ def drawGameOver(app, canvas):
             canvas.create_text(app.width/2, app.height/2, text = "GAME OVER PLAYER 1 WINS",
                                 font = "Times 15 bold", 
                                 fill = "light goldenrod yellow")
+        canvas.create_text(app.width/2, app.height * 55/100, text = "PRESS P TO RESET",
+                            font = "Times 15 bold", fill = "White")
 
 #REDRAWALL
-def redrawAll(app, canvas):
+def gameMode_redrawAll(app, canvas):
     drawBoard(app, canvas)
     drawGameInfo(app, canvas)
     drawSelection(app, canvas)
     drawAttackBtn(app, canvas)
     drawBases(app, canvas)
     drawGameOver(app, canvas)
+    drawControls(app, canvas)
+    drawAvatar(app, canvas)
 
-#TIMERFIRED
-def timerFired(app):
-    pass
-
-# def gameDimensions():
-#     return (rows, cols, margin, cellSize)
 #################################################
 # main
 #################################################
