@@ -582,6 +582,9 @@ def drawControls(app, canvas):
     canvas.create_text(app.width/30, app.height * 85/100, text = f"Map Levels: 0, 1, 2, 3", fill = "White", font = "System 10", anchor = "w")
     canvas.create_text(app.width/30, app.height * 87/100, text = f"Buy Collector: Q | Buy Tank: W", fill = "White", font = "System 10", anchor = "w")
     canvas.create_text(app.width/30, app.height * 89/100, text = f"Move: S | Attack: A", fill = "White", font = "System 10", anchor = "w")
+    canvas.create_text(app.width/30, app.height * 91/100, text = f"Change Avatar: X | V | K", fill = "White", font = "System 10", anchor = "w")
+    canvas.create_text(app.width/30, app.height * 93/100, text = f"Square Algorithm Map: M | Default Map: N", fill = "White", font = "System 10", anchor = "w")
+    canvas.create_text(app.width/30, app.height * 95/100, text = f"Title Screen: P", fill = "White", font = "System 10", anchor = "w")
 
 
 
