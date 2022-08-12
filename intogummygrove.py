@@ -131,7 +131,6 @@ def appStarted(app):
             if app.resboard[row][col] == 1:
                 app.reslocations.append((row, col))            
 
-
     #heightBoard
     app.heiboard = [[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
@@ -143,20 +142,16 @@ def appStarted(app):
                     [ 0, 0, 0, 0, 0, 0, 0, 1, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
                     ]
-
     app.hght = app.cellSize * 1/2
 
-    #views
+    #misc
     app.view = 0
-
     app.movement = 0
     app.aimSelectionRow = -1
     app.aimSelectionCol = -1
-
     app.mode = 'splScrnMode'
 
 # Splash Screen Mode
-
 def splScrnMode_redrawAll(app, canvas):
     canvas.create_rectangle(0, 0, app.width, app.height, fill = "white")
     canvas.create_text(app.width/2, 150, text='INTO GUMMY GROVE!', font = "Unispace 22 bold", fill = "grey15")
@@ -192,7 +187,7 @@ def getRowCol(app, x, y):
     row = (y - 0.5 * x) // app.cellSize
     return row, col
 
-#BUYBUYBUY maybe make damage from father ranges lower
+#Buying
 def buyResourceCollector(app, row, col, player):
     if len(player.pieces) < 8:
         if app.currentPlayer == 1:
@@ -211,11 +206,12 @@ def buyTank(app, row, col, player):
             tank = Piece("etank", 300, 200, 5, 200, row, col, 2, 2)
             player.buyPiece(tank)
 
-#USER INPUT FUNCTIONS
+#Misc Helper Functions
 import math
 def distance(x0, y0, x1, y1):
     return math.sqrt((x1-x0)**2 + (y1-y0)**2)
 
+#USER INPUT FUNCTIONS
 def gameMode_keyPressed(app, event):
     if event.key == 'p':
         app.mode = 'splScrnMode'
@@ -334,6 +330,7 @@ def gameMode_keyPressed(app, event):
     
     if event.key == 'm': 
         appStarted(app)
+        #Square Algorithm for terrain
         from random import randint
         app.heiboard[0][0] = randint(0, 2)
         app.heiboard[8][0] = randint(0, 2)
@@ -358,6 +355,7 @@ def gameMode_keyPressed(app, event):
         app.heiboard[0][4] == 0
         app.heiboard[8][4] == 0
     if event.key == 'n':
+        #default terrain
         appStarted(app)
         app.heiboard = [[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
                     [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
@@ -479,8 +477,9 @@ def attackPiece(app, row, col, p):
                 if enpiece.row == row and enpiece.col == col:
                     p.atc(enpiece)
                     if enpiece.health <= 0:
-                        app.player1.pieces.remove(enpiece)            
-#DRAW BOARD FUNCTIONS
+                        app.player1.pieces.remove(enpiece)  
+
+#DRAW FUNCTIONS
 def drawBoard(app, canvas):
     canvas.create_rectangle(0, 0, app.width, app.height, fill = "grey15")
     for row in range(app.rows):
@@ -501,7 +500,6 @@ def drawBoard(app, canvas):
             elif app.view == 3:
                 if app.heiboard[row][col] == 2:
                     drawHeight(app, canvas, row, col, app.heiboard[row][col])
-
 
 def drawCell(app, canvas, row, col):   
     #top  
@@ -531,7 +529,6 @@ def drawCell(app, canvas, row, col):
     if app.attacking == True:
         if (row, col) == (app.aimSelectionRow, app.aimSelectionCol):
             canvas.create_polygon(rx, ry, tx, ty, lx, ly, bx, by, fill = "tomato2", width = 3, outline = "black")
-    
     
 def drawHeight(app, canvas, row, col, howhigh):
     if howhigh <= 0:
@@ -585,8 +582,6 @@ def drawControls(app, canvas):
     canvas.create_text(app.width/30, app.height * 91/100, text = f"Change Avatar: X | V | K", fill = "White", font = "System 10", anchor = "w")
     canvas.create_text(app.width/30, app.height * 93/100, text = f"Square Algorithm Map: M | Default Map: N", fill = "White", font = "System 10", anchor = "w")
     canvas.create_text(app.width/30, app.height * 95/100, text = f"Title Screen: P", fill = "White", font = "System 10", anchor = "w")
-
-
 
 def drawPiece(app, canvas, row, col, name, player, height):
     x, y = getCellMidPoint(app, row, col)
