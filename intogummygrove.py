@@ -48,6 +48,26 @@ class Piece:
         self.row = newrow
         self.col = newcol        
 
+class Tank(Piece):
+    def __init__(self, row, col, team):
+        super().__init__("tank", 300, 200, 5, 200, row, col, 2, team)
+        self.time = 0
+        self.waittime = 10
+        self.enhance = False
+    def longShots(self):
+        self.range += 4
+    pass
+
+class Collector(Piece):
+    def __init__(self, row, col, team):
+        super().__init__("collect", 100, 0, 0, 200, row, col, 1, team)
+        self.time = 0
+        self.waittime = 5
+        self.enhance = False
+    def reinforce(self):
+        self.health += 500
+    pass
+
 #################################################
 #Graphics 
 #################################################
@@ -191,19 +211,19 @@ def getRowCol(app, x, y):
 def buyResourceCollector(app, row, col, player):
     if len(player.pieces) < 8:
         if app.currentPlayer == 1:
-            resourceCollector = Piece("collect", 100, 0, 0, 200, row, col, 1, 1)
+            resourceCollector = Collector(row, col, 1)
             player.buyPiece(resourceCollector)
         else:
-            resourceCollector = Piece("ecollect", 100, 0, 0, 200, row, col, 1, 2)
+            resourceCollector = Collector(row, col, 2)
             player.buyPiece(resourceCollector)
 
 def buyTank(app, row, col, player):
     if len(player.pieces) < 8:
         if app.currentPlayer == 1:
-            tank = Piece("tank", 300, 200, 5, 200, row, col, 2, 1)
+            tank = Tank(row, col, 1)
             player.buyPiece(tank)
         else:
-            tank = Piece("etank", 300, 200, 5, 200, row, col, 2, 2)
+            tank = Tank(row, col, 2)
             player.buyPiece(tank)
 
 #Misc Helper Functions
@@ -249,8 +269,10 @@ def gameMode_keyPressed(app, event):
         app.currentPlayer = (app.turns % 2) + 1
         for piece in app.player1.pieces:
             piece.acted = False
+            piece.time += 1
         for piece in app.player2.pieces:
             piece.acted = False
+            piece.time += 1
     if event.key == 's':
         if not app.moving:
             app.moving = True
@@ -262,6 +284,16 @@ def gameMode_keyPressed(app, event):
                 app.attacking = True
             else:
                 app.attacking = False
+    if event.key == 'd':
+        if app.pieceSelection != None and not app.pieceSelection.acted and not app.pieceSelection.enhance: 
+            if app.pieceSelection.name == "tank":
+                if app.pieceSelection.time >= app.pieceSelection.waittime:
+                    app.pieceSelection.longShots()
+                    app.pieceSelection.enhance = True
+            if app.pieceSelection.name == "collect":
+                if app.pieceSelection.time >= app.pieceSelection.waittime:
+                    app.pieceSelection.reinforce()
+                    app.pieceSelection.enhance = True
     if event.key == 'Up':
         if app.pieceSelection != None and app.pieceSelection.team == app.currentPlayer and app.moving:
             if not app.pieceSelection.acted:
@@ -404,7 +436,7 @@ def addMoney(app):
             if (piece.row, piece.col) in app.reslocations:
                 app.player1.gold += 50
     for piece in app.player2.pieces:
-        if piece.name == "ecollect":
+        if piece.name == "collect":
             if (piece.row, piece.col) in app.reslocations:
                 app.player2.gold += 50
 
@@ -591,9 +623,9 @@ def drawPiece(app, canvas, row, col, name, player, height):
         elif name == "collect":
             canvas.create_image(x, (y - 15 - height), image=ImageTk.PhotoImage(app.collect))
     else:
-        if name == "etank":
+        if name == "tank":
             canvas.create_image(x, (y - 10 - height), image=ImageTk.PhotoImage(app.etank))
-        elif name == "ecollect":
+        elif name == "collect":
             canvas.create_image(x, (y - 15 - height), image=ImageTk.PhotoImage(app.ecollect))
 
 def drawAvatar(app, canvas):
@@ -625,10 +657,12 @@ def drawSelection(app, canvas):
             canvas.create_text(app.width * 77/100, app.height * 20/100, text = f"Status: Moving", fill = "White", anchor = 'w', font = "Unispace 10")
         if app.attacking:
             canvas.create_text(app.width * 77/100, app.height * 20/100, text = f"Status: Attacking", fill = "White", anchor = 'w', font = "Unispace 10")
+        canvas.create_text(app.width * 77/100, app.height * 22.5/100, text = f"Enhancement at 5 | Current: {app.pieceSelection.time}", fill = "White", anchor = 'w', font = "Unispace 10")
 
 def drawAttackBtn(app, canvas):
     if app.attacking:
         if app.aimSelectionRow != -1:
+            print(app.pieceSelection.row) 
             if app.pieceSelection.team == app.currentPlayer:
                 canvas.create_rectangle(app. width * 89/100, app.height * 81/100, app.width * 99/100, app.height * 98.5/100, fill = "tomato2")
                 canvas.create_text(app.width * 92.5/100, app.height * 90/100, text = "ATTACK", fill = "White", anchor = 'w', font = "Unispace 10 bold")
