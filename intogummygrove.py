@@ -126,6 +126,9 @@ def appStarted(app):
 
     app.avatar = app.cat
 
+    app.ben = app.loadImage('enemy.png')
+    app.enemy = app.scaleImage(app.ben, 2)
+
     #UI Locations 
     app.nextturnx = app.width / 8
     app.nextturny = app.height * 5 / 6
@@ -614,6 +617,7 @@ def drawControls(app, canvas):
     canvas.create_text(app.width/30, app.height * 91/100, text = f"Change Avatar: X | V | K", fill = "White", font = "System 10", anchor = "w")
     canvas.create_text(app.width/30, app.height * 93/100, text = f"Square Algorithm Map: M | Default Map: N", fill = "White", font = "System 10", anchor = "w")
     canvas.create_text(app.width/30, app.height * 95/100, text = f"Title Screen: P", fill = "White", font = "System 10", anchor = "w")
+    canvas.create_text(app.width/30, app.height * 97/100, text = f"Enhance Piece: D", fill = "White", font = "System 10", anchor = "w")
 
 def drawPiece(app, canvas, row, col, name, player, height):
     x, y = getCellMidPoint(app, row, col)
@@ -629,7 +633,8 @@ def drawPiece(app, canvas, row, col, name, player, height):
             canvas.create_image(x, (y - 15 - height), image=ImageTk.PhotoImage(app.ecollect))
 
 def drawAvatar(app, canvas):
-    canvas.create_image(app.width / 3, (app.height * 87/100), image=ImageTk.PhotoImage(app.avatar))
+    canvas.create_image(app.width * 4/16, (app.height * 6/8), image=ImageTk.PhotoImage(app.avatar))
+    canvas.create_image(app.width * 12 / 16, (app.height * 2/8), image=ImageTk.PhotoImage(app.enemy))
 
 def drawBases(app, canvas):
     x1, y1 = getCellMidPoint(app, app.base1row, app.base1col)
@@ -658,11 +663,11 @@ def drawSelection(app, canvas):
         if app.attacking:
             canvas.create_text(app.width * 77/100, app.height * 20/100, text = f"Status: Attacking", fill = "White", anchor = 'w', font = "Unispace 10")
         canvas.create_text(app.width * 77/100, app.height * 22.5/100, text = f"Enhancement at 5 | Current: {app.pieceSelection.time}", fill = "White", anchor = 'w', font = "Unispace 10")
+        
 
 def drawAttackBtn(app, canvas):
     if app.attacking:
         if app.aimSelectionRow != -1:
-            print(app.pieceSelection.row) 
             if app.pieceSelection.team == app.currentPlayer:
                 canvas.create_rectangle(app. width * 89/100, app.height * 81/100, app.width * 99/100, app.height * 98.5/100, fill = "tomato2")
                 canvas.create_text(app.width * 92.5/100, app.height * 90/100, text = "ATTACK", fill = "White", anchor = 'w', font = "Unispace 10 bold")
