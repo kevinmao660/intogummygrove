@@ -7,7 +7,8 @@ can be earned by placing resource collectors on specific tiles. There are
 higher elevation locations where the pieces cannot travel. 
 
 How to Run Project: 
-1. Run the file intogummygrove.py
+1 Make sure all files are in the same folder including all media used and cmu_112_grahics.
+2. Run the file intogummygrove.py
 
 Shortcuts: 
 Map Levels: 0, 1, 2, 3
