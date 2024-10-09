@@ -1,7 +1,7 @@
 # cmu_112_graphics.py
-# version 0.9.0
+# version 0.9.2
 
-# Pre-release for CMU 15-112-s21
+# Pre-release for CMU 15-112-f21
 
 # Require Python 3.6 or later
 import sys
@@ -11,8 +11,8 @@ if ((sys.version_info[0] != 3) or (sys.version_info[1] < 6)):
 # Track version and file update timestamp
 import datetime
 MAJOR_VERSION = 0
-MINOR_VERSION = 9.0 # version 0.9.0
-LAST_UPDATED  = datetime.date(year=2021, month=4, day=12)
+MINOR_VERSION = 9.2 # version 0.9.2
+LAST_UPDATED  = datetime.date(year=2022, month=3, day=29)
 
 # Pending changes:
 #   * Fix Windows-only bug: Position popup dialog box over app window (already works fine on Macs)
@@ -23,6 +23,12 @@ LAST_UPDATED  = datetime.date(year=2021, month=4, day=12)
 
 # Deferred changes:
 #   * replace/augment tkinter canvas with PIL/Pillow imageDraw (perhaps with our own fn names)
+
+# Changes in v0.9.2
+#  * added event.ctrl, event.alt, event.shift
+
+# Changes in v0.9.1
+#  * If we are in a mode when we call appStopped, then also call the non-modal appStopped
 
 # Changes in v0.9.0
 #  * added simpler top-level modes implementation that does not include mode objects
@@ -37,7 +43,7 @@ LAST_UPDATED  = datetime.date(year=2021, month=4, day=12)
 #   * removed modes (for now)
 
 # Changes in v0.8.6
-#   * s21
+#   * f21
 
 # Changes in v0.8.5
 #   * Support loadImage from Modes
@@ -476,6 +482,9 @@ class App(object):
             del event.char
             super().__init__(event)
             self.key = App._getEventKeyInfo(event, keysym, char)
+            self.ctrl  = (event.state & 0x4) != 0
+            self.alt   = (event.state & 0x8) != 0 or (event.state & 0x80) != 0
+            self.shift = (event.state & 0x1) != 0
         def __repr__(self):
             return f'Event(key={repr(self.key)})'
         keysym = property(lambda *args: App._useEventKey('keysym'),
@@ -671,10 +680,16 @@ class TopLevelApp(App):
         super().__init__(**kwargs)
 
     def _callFn(app, fn, *args):
-        if (app.mode != None) and (app.mode != ''):
+        isAppStopped = fn == 'appStopped'
+        isUsingMode = (app.mode != None) and (app.mode != '')
+        if isUsingMode:
             fn = app.mode + '_' + fn
         fn = app._fnPrefix + fn
         if (fn in app._callersGlobals): app._callersGlobals[fn](*args)
+        if (isAppStopped and isUsingMode):
+            # call the non-mode appStopped if there is one
+            fn = app._fnPrefix + 'appStopped'
+            if (fn in app._callersGlobals): app._callersGlobals[fn](*args)
 
     def redrawAll(app, canvas): app._callFn('redrawAll', app, canvas)
     def appStarted(app): app._callFn('appStarted', app)

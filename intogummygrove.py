@@ -1,18 +1,5 @@
-#################################################
-# Term Project: Into Gummy Grove!
-#
-# Your name: Kevin Mao  
-# Your andrew id: kevinmao
-#################################################
-
 import math, copy, random
 from cmu_112_graphics import *
-
-#################################################
-# The Coding Begins! 
-#################################################
-#Classes 
-#################################################
 
 class Player:
     def __init__(self, name):
